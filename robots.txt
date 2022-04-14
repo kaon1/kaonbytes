@@ -1,2 +1,2 @@
 User-agent: *
-Sitemap: https://kaonbytes.com/sitemap.xml
+Sitemap: https://kaon1.github.io/kaonbytes/sitemap.xml
