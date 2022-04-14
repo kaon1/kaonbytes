@@ -7,7 +7,7 @@ title: KaonBytes
 languages:
     en:
         languageName: English
-        title: Example Site
+        title: KaonBytes
         weight: 1
     zh-cn:
         languageName: 中文
@@ -54,7 +54,7 @@ params:
 
     sidebar:
         emoji: 🍥
-        subtitle: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        subtitle: Welcome to Kaon's Blog
         avatar:
             enabled: true
             local: true
