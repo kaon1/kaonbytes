@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>python on KaonBytes</title><link>https://kaonbytes.com/tags/python/</link><description>Recent content in python on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 14 Apr 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/tags/python/index.xml" rel="self" type="application/rss+xml"/><item><title>Automate Network Bandwidth Testing</title><link>https://kaonbytes.com/p/automate-network-bandwidth-testing/</link><pubDate>Wed, 14 Apr 2021 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/automate-network-bandwidth-testing/</guid><description>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/python-iperf-datadog-mini.png" alt="Featured image of post Automate Network Bandwidth Testing" />&lt;p>&lt;strong>The best way for a Network Engineer to grasp automation&lt;/strong> is to begin by coding a simple real problem that they
+encounter. We often use &lt;a class="link" href="https://iperf.fr/" target="_blank" rel="noopener"
+>IPERF&lt;/a> to measure the bandwidth performance of a network path.
+With a few lines of &lt;a class="link" href="https://iperf3-python.readthedocs.io/en/latest/" target="_blank" rel="noopener"
+>python code&lt;/a>, we can
+automate this task and graph the data via &lt;a class="link" href="https://www.datadoghq.com/" target="_blank" rel="noopener"
+>DataDog&lt;/a> for historical reference.&lt;/p>
+&lt;h2 id="the-end-result">The End Result&lt;/h2>
+&lt;p>Nobody likes to read through pages of text and images to get to the money shot. So here it is&amp;hellip;&lt;/p>
+&lt;h3 id="datadog-graph">DataDog Graph&lt;/h3>
+&lt;p>Graph of hourly iperf3 tests. Each test is limited to 1 stream and 1Gbps bandiwdth cap.&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-graph.png"
+width="1650"
+height="967"
+srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="170"
+data-flex-basis="409px"
+>&lt;/p>
+&lt;h3 id="python-code">Python Code&lt;/h3>
+&lt;p>&lt;a class="link" href="https://github.com/kaon1/python-misc/blob/master/observability-metrics/iperf-dd-metrics.py" target="_blank" rel="noopener"
+>iperf-dd-metrics.py&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;span class="lnt">43
+&lt;/span>&lt;span class="lnt">44
+&lt;/span>&lt;span class="lnt">45
+&lt;/span>&lt;span class="lnt">46
+&lt;/span>&lt;span class="lnt">47
+&lt;/span>&lt;span class="lnt">48
+&lt;/span>&lt;span class="lnt">49
+&lt;/span>&lt;span class="lnt">50
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Script to run iperf3 test to measure bandwidth to remote site.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Runs in reverse mode to measure both ingress and egress bandwidth&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Sends avg bandwidth metric to Datadog as a custom gauge metric&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Its suggested you run this script as a cron job on a regular hourly interval&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">datadog&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">initialize&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">statsd&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">time&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">iperf3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">os&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Set vars&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Remote iperf server IP&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">remote_site&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;&amp;lt;enter remote host IP here&amp;gt;&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Datadog API Key&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">api_key&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;&amp;lt;enter dd api key here&amp;gt;&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># How long to run iperf3 test in seconds&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">test_duration&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">20&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Set DD options for statsd init&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">options&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;statsd_host&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;127.0.0.1&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;statsd_port&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">8125&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;api_key&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">api_key&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">initialize&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">**&lt;/span>&lt;span class="n">options&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Set Iperf Client Options&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Run 10 parallel streams on port 5201 for duration w/ reverse&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">iperf3&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Client&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">server_hostname&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">remote_site&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">zerocopy&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kc">True&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">verbose&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kc">False&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">reverse&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kc">True&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">port&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">5201&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">num_streams&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">10&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">duration&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">int&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">test_duration&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">bandwidth&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1000000000&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Run iperf3 test&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">result&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">run&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># extract relevant data&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">sent_mbps&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">int&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">result&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">sent_Mbps&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">received_mbps&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">int&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">result&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">received_Mbps&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># send Metrics to DD and add some tags for classification in DD GUI&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># send bandwidth metric - egress mbps&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">statsd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">gauge&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;iperf3.test.mbps.egress&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">sent_mbps&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">tags&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;team_name:your_team&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;team_app:iperf&amp;#34;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># send bandwidth metric - ingress mbps&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">statsd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">gauge&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;iperf3.test.mbps.ingress&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">received_mbps&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">tags&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;team_name:your_team&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;team_app:iperf&amp;#34;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="the-process">The Process&lt;/h2>
+&lt;p>If you&amp;rsquo;re still here, let&amp;rsquo;s get into the details&amp;hellip;&lt;/p>
+&lt;h3 id="setup">Setup&lt;/h3>
+&lt;ul>
+&lt;li>Spin up two Linux Hosts (HostA and HostB)
+&lt;ul>
+&lt;li>Install &lt;a class="link" href="https://docs.python-guide.org/starting/install3/linux/" target="_blank" rel="noopener"
+>Python3&lt;/a> &amp;ndash;&amp;gt; &lt;code>yum install python3&lt;/code>&lt;/li>
+&lt;li>Install &lt;a class="link" href="https://iperf.fr/iperf-download.php" target="_blank" rel="noopener"
+>IPERF3&lt;/a> &amp;ndash;&amp;gt; &lt;code>yum install iperf3&lt;/code>&lt;/li>
+&lt;li>Install &lt;a class="link" href="https://iperf3-python.readthedocs.io/en/latest/installation.html" target="_blank" rel="noopener"
+>iPerf3 Python Wrapper&lt;/a> &amp;ndash;&amp;gt; &lt;code>pip install iperf3&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Setup a DataDog Account and &lt;a class="link" href="https://docs.datadoghq.com/account_management/api-app-keys/" target="_blank" rel="noopener"
+>API Key&lt;/a>
+&lt;ul>
+&lt;li>Graphing the metrics is optional. Alternatively, we can save results to local disk.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h3 id="iperf3-server">iperf3 Server&lt;/h3>
+&lt;p>Choose one of your hosts to be your &lt;strong>always-on&lt;/strong> iperf3 server and setup an iperf3 service in systemd&lt;/p>
+&lt;ul>
+&lt;li>For Centos Linux:
+&lt;ul>
+&lt;li>cd &lt;code>/etc/systemd/system/&lt;/code>&lt;/li>
+&lt;li>Create a file called &lt;a class="link" href="https://github.com/kaon1/python-misc/blob/master/observability-metrics/iperf3.service" target="_blank" rel="noopener"
+>iperf3.service&lt;/a>&lt;/li>
+&lt;li>Contents:&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"># Centos Server file to run iperf3 service on startup.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># This server acts as the iperf &amp;#39;receiver&amp;#39; for speed testing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># /etc/systemd/system/iperf3.service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># User service: $HOME/.config/systemd/user/iperf3.service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">[Unit]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Description=iperf3 server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">After=syslog.target network.target auditd.service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">[Service]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ExecStart=/usr/bin/iperf3 -s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">[Install]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">WantedBy=multi-user.target
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ul>
+&lt;li>enable the service to run at startup: &lt;code>systemctl enable iperf3.service&lt;/code>&lt;/li>
+&lt;li>start the iperf3 service: &lt;code>systemctl start iperf3.service&lt;/code>&lt;/li>
+&lt;li>verify the service is running: &lt;code>systemctl status iperf3.service&lt;/code> or &lt;code>ps aux | grep iperf&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h3 id="iperf3-client">iperf3 Client&lt;/h3>
+&lt;p>Begin testing the iperf3 service by creating a simple python script on the Client HostA&lt;/p>
+&lt;ul>
+&lt;li>Create &lt;code>iperf-dd-metrics-test.py&lt;/code>:&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">iperf3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Set vars&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Remote iperf server IP&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">remote_site&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;10.220.0.244&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># How long to run iperf3 test in seconds&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">test_duration&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">10&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Set Iperf Client Options&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Run 10 parallel streams on port 5201 for duration w/ reverse&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">iperf3&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Client&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">server_hostname&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">remote_site&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">zerocopy&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kc">True&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">verbose&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kc">False&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">reverse&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kc">True&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">port&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">5201&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">num_streams&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">10&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">duration&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">int&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">test_duration&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">bandwidth&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1000000000&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Run iperf3 test&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">result&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">client&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">run&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># extract relevant data&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">sent_mbps&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">int&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">result&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">sent_Mbps&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">received_mbps&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">int&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">result&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">received_Mbps&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;sent_mbps: &amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sent_mbps&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;received_mbps: &amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">received_mbps&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ul>
+&lt;li>run the file: &lt;code># python3 iperf-dd-metrics-test.py&lt;/code>:
+&lt;ul>
+&lt;li>results:&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">sent_mbps:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">966
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">received_mbps:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">959
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;/ul>
+&lt;p>Now we have a fully functioning iperf3 client and server setup.&lt;/p>
+&lt;h3 id="sending-metrics-to-datadog">Sending Metrics to DataDog&lt;/h3>
+&lt;p>DataDog has a &lt;a class="link" href="https://github.com/DataDog/datadogpy" target="_blank" rel="noopener"
+>python library&lt;/a> to allow us to send the speed test results up to DD&lt;/p>
+&lt;ul>
+&lt;li>Import the library and initialize options:&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">datadog&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">initialize&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">statsd&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Datadog API Key&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">api_key&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">getenv&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;DD_API_KEY&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Set DD options for statsd init&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">options&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;statsd_host&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;127.0.0.1&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;statsd_port&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">8125&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;api_key&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">api_key&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">initialize&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">**&lt;/span>&lt;span class="n">options&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># send Metrics to DD and add some tags for classification in DD GUI&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># send bandwidth metric - egress mbps&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">statsd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">gauge&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;iperf3.test.mbps.egress&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">sent_mbps&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">tags&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;team_name:your_team&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;team_app:iperf&amp;#34;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># send bandwidth metric - ingress mbps&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">statsd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">gauge&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;iperf3.test.mbps.ingress&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">received_mbps&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">tags&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;team_name:your_team&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;team_app:iperf&amp;#34;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="full-script-and-crontab">Full Script and Crontab&lt;/h3>
+&lt;p>Put the two pieces of the script together and you get the end result
+&amp;mdash; &lt;a class="link" href="https://github.com/kaon1/python-misc/blob/master/observability-metrics/iperf-dd-metrics.py" target="_blank" rel="noopener"
+>iperf-dd-metrics.py&lt;/a>&lt;/p>
+&lt;p>Use crontab to continuously run the script in periodic intervals.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"># Example of job definition:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># .---------------- minute (0 - 59)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># | .------------- hour (0 - 23)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># | | .---------- day of month (1 - 31)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># | | | .------- month (1 - 12) OR jan,feb,mar,apr ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># | | | | .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># | | | | |
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># * * * * * user-name command to be executed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">20 * * * * root /usr/bin/python3 /home/iperf-python/iperf-dd-metrics.py
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>The above job will run every hour on the 20th minute of the hour forever&lt;/p>
+&lt;h3 id="visualizing-the-data">Visualizing the Data&lt;/h3>
+&lt;p>The metrics that are being sent to DataDog need to be graphed on a dashboard&lt;/p>
+&lt;ul>
+&lt;li>Logon to DataDog and go to Metrics &amp;ndash;&amp;gt; Explorer&lt;/li>
+&lt;li>Search &lt;code>iperf3&lt;/code>&lt;/li>
+&lt;li>Find you metrics&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-metrics-explorer.png"
+width="1287"
+height="1005"
+srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="128"
+data-flex-basis="307px"
+>&lt;/p>
+&lt;ul>
+&lt;li>Create a timeseries graph:&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-create-graph.png"
+width="1655"
+height="1278"
+srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="129"
+data-flex-basis="310px"
+>&lt;/p></description></item></channel></rss>
