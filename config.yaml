@@ -20,7 +20,7 @@ languages:
         weight: 3
 
 # Change it to your Disqus shortname before using
-disqusShortname: kaonbytes-com.disqus.com
+disqusShortname: kaonbytes-com
 
 # GA Tracking ID
 googleAnalytics:
@@ -42,7 +42,7 @@ params:
         - post
     featuredImageField: image
     rssFullContent: true
-    favicon:
+    favicon: favicon.ico
 
     footer:
         since: 2022
@@ -206,6 +206,12 @@ menu:
           url: https://twitter.com/Kaon_123
           params:
               icon: brand-twitter
+
+        - identifier: linkedin
+          name: LinkedIn
+          url: https://www.linkedin.com/in/kaon1/
+          params:
+              icon: linkedin
 
 related:
     includeNewer: true
