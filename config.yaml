@@ -9,15 +9,15 @@ languages:
         languageName: English
         title: KaonBytes
         weight: 1
-    zh-cn:
-        languageName: 中文
-        title: 演示站点
-        weight: 2
-    ar:
-        languageName: عربي
-        languagedirection: rtl
-        title: موقع تجريبي
-        weight: 3
+#    zh-cn:
+#        languageName: 中文
+#        title: 演示站点
+#        weight: 2
+#    ar:
+#        languageName: عربي
+#        languagedirection: rtl
+#        title: موقع تجريبي
+#        weight: 3
 
 # Change it to your Disqus shortname before using
 disqusShortname: kaonbytes-com
