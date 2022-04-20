@@ -1,7 +1,7 @@
 +++
 author = "Kaon Thana"
 title = "Automate Network Bandwidth Testing"
-date = "2021-04-14"
+date = "2022-04-14"
 description = "Use python to run iperf3 testing between network sites periodically and graph the metrics to Datadog"
 tags = [
     "python",
@@ -23,7 +23,7 @@ automate this task and graph the data via [DataDog](https://www.datadoghq.com/) 
 ## The End Result
 Nobody likes to read through pages of text and images to get to the money shot. So here it is...
 ### DataDog Graph
-Graph of hourly iperf3 tests. Each test is limited to 1 stream and 1Gbps bandiwdth cap.
+Graph of hourly iperf3 tests:
 
 ![](dd-graph.png)
 
@@ -126,7 +126,7 @@ import iperf3
 
 # Set vars
 # Remote iperf server IP
-remote_site = '10.220.0.244'
+remote_site = 'ip of server goes here'
 # How long to run iperf3 test in seconds
 test_duration = 10
 
@@ -191,7 +191,7 @@ Put the two pieces of the script together and you get the end result
 --- [iperf-dd-metrics.py](https://github.com/kaon1/python-misc/blob/master/observability-metrics/iperf-dd-metrics.py)
 
 Use crontab to continuously run the script in periodic intervals. 
-```
+```plain
 # Example of job definition:
 # .---------------- minute (0 - 59)
 # |  .------------- hour (0 - 23)
@@ -206,12 +206,16 @@ The above job will run every hour on the 20th minute of the hour forever
 
 ### Visualizing the Data
 The metrics that are being sent to DataDog need to be graphed on a dashboard
-* Logon to DataDog and go to Metrics --> Explorer
+* Logon to DataDog and go to **Metrics --> Explorer**
  * Search `iperf3`
  * Find you metrics
  
 ![](dd-metrics-explorer.png)
 
-* Create a timeseries graph:
+* Create a **timeseries graph**
+* Graph both Egress and Ingress **Metrics** as A and B respectively
+* Set your **Y-Axis** to desired MAX setting (999 in my case)
+* Give your graph a **title**
 
 ![](dd-create-graph.png)
+## Final Thoughts

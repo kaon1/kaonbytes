@@ -20,7 +20,7 @@ languages:
         weight: 3
 
 # Change it to your Disqus shortname before using
-disqusShortname: hugo-theme-stack
+disqusShortname: kaonbytes-com.disqus.com
 
 # GA Tracking ID
 googleAnalytics:
@@ -45,7 +45,7 @@ params:
     favicon:
 
     footer:
-        since: 2020
+        since: 2022
         customText:
 
     dateFormat:
@@ -54,7 +54,7 @@ params:
 
     sidebar:
 #        emoji: 🍥
-        subtitle: Welcome to Kaon's Blog
+        subtitle: Welcome to Kaon's Technical blog on all things Networking, Security and Automation
         avatar:
             enabled: true
             local: true
@@ -65,7 +65,7 @@ params:
         toc: true
         readingTime: true
         license:
-            enabled: true
+            enabled: false
             default: Licensed under CC BY-NC-SA 4.0
 
     comments:
@@ -152,9 +152,9 @@ params:
             - type: archives
               params:
                   limit: 5
-            - type: categories
-              params:
-                  limit: 10
+#            - type: categories
+#              params:
+#                  limit: 10
             - type: tag-cloud
               params:
                   limit: 10
@@ -164,7 +164,7 @@ params:
     opengraph:
         twitter:
             # Your Twitter username
-            site:
+            site: kaon_123
 
             # Available values: summary, summary_large_image
             card: summary_large_image
@@ -197,13 +197,13 @@ menu:
     social:
         - identifier: github
           name: GitHub
-          url: https://github.com/CaiJimmy/hugo-theme-stack
+          url: https://github.com/kaon1
           params:
               icon: brand-github
 
         - identifier: twitter
           name: Twitter
-          url: https://twitter.com
+          url: https://twitter.com/Kaon_123
           params:
               icon: brand-twitter
 
@@ -215,8 +215,8 @@ related:
         - name: tags
           weight: 100
 
-        - name: categories
-          weight: 200
+#        - name: categories
+#          weight: 200
 
 markup:
     goldmark:
@@ -232,6 +232,6 @@ markup:
         codeFences: true
         guessSyntax: true
         lineNoStart: 1
-        lineNos: true
+        lineNos: false
         lineNumbersInTable: true
         tabWidth: 4
