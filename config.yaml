@@ -54,11 +54,11 @@ params:
 
     sidebar:
 #        emoji: 🍥
-        subtitle: Welcome to Kaon's Technical blog on all things Networking, Security and Automation
+        subtitle: Welcome to my technical blog on all things Networking, Security and Automation
         avatar:
             enabled: true
             local: true
-            src: img/avatar.png
+            src: img/twitter-profile.jpg
 
     article:
         math: false
@@ -152,12 +152,12 @@ params:
             - type: archives
               params:
                   limit: 5
-#            - type: categories
-#              params:
-#                  limit: 10
-            - type: tag-cloud
+            - type: categories
               params:
                   limit: 10
+#            - type: tag-cloud
+#              params:
+#                  limit: 10
         page:
             - type: toc
 
@@ -218,11 +218,10 @@ related:
     threshold: 60
     toLower: false
     indices:
-        - name: tags
-          weight: 100
-
-#        - name: categories
-#          weight: 200
+#        - name: tags
+#          weight: 100
+        - name: categories
+          weight: 200
 
 markup:
     goldmark:

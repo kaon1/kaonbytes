@@ -3,9 +3,9 @@ author = "Kaon Thana"
 title = "Automate Network Bandwidth Testing"
 date = "2022-04-14"
 description = "Use python to run iperf3 testing between network sites periodically and graph the metrics to Datadog"
-tags = [
+categories = [
     "python",
-    "network-automation",
+    "automation",
     "datadog",
     "observability",
     "iperf",
@@ -15,7 +15,7 @@ aliases = ["python-iperf-datadog"]
 image = "python-iperf-datadog-mini.png"
 +++
 
-**The best way for a Network Engineer to grasp automation** is to begin by coding a simple real problem that they 
+**The best way for a Network Engineer to grasp automation** is to begin by coding a simple problem that they 
 encounter. We often use [IPERF](https://iperf.fr/) to measure the bandwidth performance of a network path. 
 With a few lines of [python code](https://iperf3-python.readthedocs.io/en/latest/), we can 
 automate this task and graph the data via [DataDog](https://www.datadoghq.com/) for historical reference.
@@ -219,3 +219,11 @@ The metrics that are being sent to DataDog need to be graphed on a dashboard
 
 ![](dd-create-graph.png)
 ## Final Thoughts
+This scenario is a good way to get started with network automation. However, it can be iterated and improved by:
+* Adding more metrics:
+    * Jitter
+    * Packet Loss
+    * UDP Testing
+* Add exception handling
+
+Feel free to contact me on twitter or comment below if you need help. Cheers!
