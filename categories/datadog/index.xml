@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>iperf on KaonBytes</title><link>https://kaonbytes.com/tags/iperf/</link><description>Recent content in iperf on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 14 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/tags/iperf/index.xml" rel="self" type="application/rss+xml"/><item><title>Automate Network Bandwidth Testing</title><link>https://kaonbytes.com/p/automate-network-bandwidth-testing/</link><pubDate>Thu, 14 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/automate-network-bandwidth-testing/</guid><description>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/python-iperf-datadog-mini.png" alt="Featured image of post Automate Network Bandwidth Testing" />&lt;p>&lt;strong>The best way for a Network Engineer to grasp automation&lt;/strong> is to begin by coding a simple real problem that they
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>datadog on KaonBytes</title><link>https://kaonbytes.com/categories/datadog/</link><description>Recent content in datadog on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 14 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/datadog/index.xml" rel="self" type="application/rss+xml"/><item><title>Automate Network Bandwidth Testing</title><link>https://kaonbytes.com/p/automate-network-bandwidth-testing/</link><pubDate>Thu, 14 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/automate-network-bandwidth-testing/</guid><description>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/python-iperf-datadog-mini.png" alt="Featured image of post Automate Network Bandwidth Testing" />&lt;p>&lt;strong>The best way for a Network Engineer to grasp automation&lt;/strong> is to begin by coding a simple problem that they
 encounter. We often use &lt;a class="link" href="https://iperf.fr/" target="_blank" rel="noopener"
 >IPERF&lt;/a> to measure the bandwidth performance of a network path.
 With a few lines of &lt;a class="link" href="https://iperf3-python.readthedocs.io/en/latest/" target="_blank" rel="noopener"
@@ -241,4 +241,16 @@ class="gallery-image"
 data-flex-grow="129"
 data-flex-basis="310px"
 >&lt;/p>
-&lt;h2 id="final-thoughts">Final Thoughts&lt;/h2></description></item></channel></rss>
+&lt;h2 id="final-thoughts">Final Thoughts&lt;/h2>
+&lt;p>This scenario is a good way to get started with network automation. However, it can be iterated and improved by:&lt;/p>
+&lt;ul>
+&lt;li>Adding more metrics:
+&lt;ul>
+&lt;li>Jitter&lt;/li>
+&lt;li>Packet Loss&lt;/li>
+&lt;li>UDP Testing&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Add exception handling&lt;/li>
+&lt;/ul>
+&lt;p>Feel free to contact me on twitter or comment below if you need help. Cheers!&lt;/p></description></item></channel></rss>
