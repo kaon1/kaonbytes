@@ -1,34 +1,75 @@
 ---
 title: About
-description: Hugo, the world's fastest framework for building websites
-date: '2019-02-28'
-aliases:
-  - about-us
-  - about-hugo
-  - contact
-license: CC BY-NC-ND
-lastmod: '2020-10-09'
+description: Hi there! My name is Kaon, thanks for visiting my technical blog.
+date: '2022-04-20'
 menu:
     main: 
         weight: -90
         params:
             icon: user
 ---
+## Intro
+**As a Network Engineer**, I love to get hands-on and solve complex problems. I've been able to combine my 
+networking skills with my Master's in computer science to create automation tools and practices for my teams.
 
-Written in Go, Hugo is an open source static site generator available under the [Apache Licence 2.0.](https://github.com/gohugoio/hugo/blob/master/LICENSE) Hugo supports TOML, YAML and JSON data file types, Markdown and HTML content files and uses shortcodes to add rich content. Other notable features are taxonomies, multilingual mode, image processing, custom output formats, HTML/CSS/JS minification and support for Sass SCSS workflows.
+I decided to start publishing content for a couple of reasons:
+* To give back to the network engineering community
+    * If other engineers can stumble on my blog posts and solve a problem or become inspired then it would make me very happy!
+* As a brain-dump for stuff I work on.
+    * I don't like solving the same problem twice...getting stuff down and documented should help with that.
+* Solidifying my understanding of the tech I work on by writing about it.
 
-Hugo makes use of a variety of open source projects including:
+## Career
+**-------------------------------------------------------------------------------------------------------------------**
 
-* https://github.com/yuin/goldmark
-* https://github.com/alecthomas/chroma
-* https://github.com/muesli/smartcrop
-* https://github.com/spf13/cobra
-* https://github.com/spf13/viper
+**I spent the first half of my career** working for a [regional WISP](https://naturalwireless.com/) in the NYC-Metro Area.
+We were all about growth and moving quickly. We were building out new sites every week to expand the customer base and network footprint.
+This type of environment forced me to start building tools:
+* Using a LAMP stack I built a network deployment system for new network sites
+    * The process involved creating labels, creating configuration templates and loading the templates onto network routers, switches, and WAPs
+* Additionally, I built out some custom monitoring tools to check RSSI (wireless signal strength) on our rooftop links with a tier of email and text alerting
+* The majority of the tooling was built in PHP and used cURL to scrape data and load config.
 
-Hugo is ideal for blogs, corporate websites, creative portfolios, online magazines, single page applications or even a website with thousands of pages.
+**-------------------------------------------------------------------------------------------------------------------**
 
-Hugo is for people who want to hand code their own website without worrying about setting up complicated runtimes, dependencies and databases.
+**The next phase of my career**, I moved to a [live webcasting company](https://www.pgi.com/virtual-events/webcast/) as a Network Engineer on the DevOps team.
 
-Websites built with Hugo are extremelly fast, secure and can be deployed anywhere including, AWS, GitHub Pages, Heroku, Netlify and any other hosting provider.
+Working on a **live** webcast production network can be intense. 
+Imagine a Fortune100 firm with 50,000 employees hosting a live TownHall on your platform... the margin for error is very small.
 
-Learn more and contribute on [GitHub](https://github.com/gohugoio).
+I did some typical network work here such as:
+* DataCenter migrations and refreshes
+* AWS Direct connect and Point-to-Point Circuit architecture of the WAN 
+* BGP traffic engineering
+
+The network did not have a constant need to grow so I was able to expand my breadth of tech knowledge to other fields such as Security and Linux Systems.
+I was able to build out systems for Vulnerability, Perimeter Scanning and IDS and also expand my knowledge of CDN Streaming (Fastly). 
+
+**-------------------------------------------------------------------------------------------------------------------**
+
+**The next couple of years I worked** in the [financial services industry](https://invesco.com) as a Lead Network Engineer. 
+The biggest takeaways from this experience were:
+* Change control is a thing (who knew?)
+* I learned Agile (sprinting, scrumming etc). I don't think agile can **ever** work well
+for an Infra team but at least I learned it!
+
+**-------------------------------------------------------------------------------------------------------------------**
+
+**Currently, I am working for a great organization and team** with the [New York Times](https://nytimes.com) as a Staff Network Engineer.
+
+Our team straddles the boundary of two distinct tech worlds: 
+1. Support the classic enterprise and paper-printing infrastructure
+2. Stay up-to-date with the big-tech world of CI/CD, Cloud, (insert buzzword here). 
+
+It keeps things fun!
+
+* I am focusing my efforts on implementing systems and practices to improve network operations and visibility. 
+* Building out and maintaining a source-of-truth, an automation platform and using CI/CD processes.
+* I believe solving a problem is only 50% of the job. The other half is documentation and knowledge sharing. As I build
+these processes I try to document and setup team sharing sessions as much as possible.
+
+## Interests
+* I love to BBQ. When I'm not chasing my kids around the park I'm smoking some ribs or brisket!
+* I'm a homelab enthusiast with all the bells and whistles setup in my basement. 
+* I love keeping up with tech. I follow the usual network engineering community on twitter. 
+Feel free to [contact me](https://twitter.com/Kaon_123)
