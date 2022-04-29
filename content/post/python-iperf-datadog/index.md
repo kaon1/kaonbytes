@@ -1,8 +1,8 @@
 +++
 author = "Kaon Thana"
-title = "Automate Network Bandwidth Testing"
+title = "Automate Network Bandwidth Testing with Python and Iperf"
 date = "2022-04-14"
-description = "Use python to run iperf3 testing between network sites periodically and graph the metrics to Datadog"
+description = "How to use python to run iperf3 testing between network sites periodically and graph the metrics to Datadog"
 categories = [
     "python",
     "automation",
@@ -12,7 +12,7 @@ categories = [
 ]
 
 aliases = ["python-iperf-datadog"]
-image = "python-iperf-datadog-mini.png"
+image = "python-iperf-datadog-mini2.png"
 +++
 
 **The best way for a Network Engineer to grasp automation** is to begin by coding a simple problem that they 

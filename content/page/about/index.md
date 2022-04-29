@@ -9,7 +9,7 @@ menu:
             icon: user
 ---
 ## Intro
-**As a Network Engineer**, I love to get hands-on and solve complex problems. I've been able to combine my 
+**As a Network Engineer**, I like to get hands-on and solve complex problems. I've been able to combine my 
 networking skills with my Master's in computer science to create automation tools and practices for my teams.
 
 I decided to start publishing content for a couple of reasons:
@@ -34,8 +34,7 @@ This type of environment forced me to start building tools:
 
 **The next phase of my career**, I moved to a [live webcasting company](https://www.pgi.com/virtual-events/webcast/) as a Network Engineer on the DevOps team.
 
-Working on a **live** webcast production network can be intense. 
-Imagine a Fortune100 firm with 50,000 employees hosting a live TownHall on your platform... the margin for error is very small.
+Working on a **live** webcast production network can be intense...the margin for network error is very small.
 
 I did some typical network work here such as:
 * DataCenter migrations and refreshes
@@ -64,12 +63,13 @@ Our team straddles the boundary of two distinct tech worlds:
 It keeps things fun!
 
 * I am focusing my efforts on implementing systems and practices to improve network operations and visibility. 
-* Building out and maintaining a source-of-truth, an automation platform and using CI/CD processes.
+* Maintaining a source-of-truth, an automation platform and using software defined processes to improve business workflows.
 * I believe solving a problem is only 50% of the job. The other half is documentation and knowledge sharing. As I build
-these processes I try to document and setup team sharing sessions as much as possible.
+these processes, explicit documentation (and implicit via IaC + code commenting) is key. 
+I also setup team sharing sessions to make sure everyone is included at any level of their progression. 
 
 ## Interests
-* I love to BBQ. When I'm not chasing my kids around the park I'm smoking some ribs or brisket!
+* As a parent of young toddlers its hard to have interests but I enjoy BBQ, Cycling and Baseball as hobbies.
 * I'm a homelab enthusiast with all the bells and whistles setup in my basement. 
-* I love keeping up with tech. I follow the usual network engineering community on twitter. 
+* I enjoy keeping up with tech. I follow the usual network engineering community on twitter. 
 Feel free to [contact me](https://twitter.com/Kaon_123)
