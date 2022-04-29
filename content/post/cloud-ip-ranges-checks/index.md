@@ -187,9 +187,38 @@ Here is a comparison of the Address Group in the Fortigate GUI and the Ansible R
 | ------------------------------  | 
 | ![](ss1.png)                    | 
 
-| `Ansible Result` |
-| ---------------- | 
-| ![](ss2.png)     | 
+Ansible Result:
+```yaml
+TASK [debug] *********************
+ok: [localhost] => {
+    "google_networks_objects.meta.results[0]": {
+        "allow-routing": "disable",
+        "color": 0,
+        "comment": "",
+        "exclude": "disable",
+        "exclude-member": [],
+        "member": [
+            {
+                "name": "test_net_1",
+                "q_origin_key": "test_net_1"
+            },
+            {
+                "name": "test_net_2",
+                "q_origin_key": "test_net_2"
+            },
+            {
+                "name": "test_net_3",
+                "q_origin_key": "test_net_3"
+            }
+        ],
+        "name": "test_group_1",
+        "q_origin_key": "test_group_1",
+        "tagging": [],
+        "uuid": "3ff6c462-c7f1-51ec-f405-2a6b59ee9591",
+        "visibility": "enable"
+    }
+}
+```
 
 ### Get Each Member of Group
 
