@@ -1,4 +1,319 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>automation on KaonBytes</title><link>https://kaonbytes.com/categories/automation/</link><description>Recent content in automation on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 14 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/automation/index.xml" rel="self" type="application/rss+xml"/><item><title>Automate Network Bandwidth Testing</title><link>https://kaonbytes.com/p/automate-network-bandwidth-testing/</link><pubDate>Thu, 14 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/automate-network-bandwidth-testing/</guid><description>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/python-iperf-datadog-mini.png" alt="Featured image of post Automate Network Bandwidth Testing" />&lt;p>&lt;strong>The best way for a Network Engineer to grasp automation&lt;/strong> is to begin by coding a simple problem that they
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>automation on KaonBytes</title><link>https://kaonbytes.com/categories/automation/</link><description>Recent content in automation on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 28 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/automation/index.xml" rel="self" type="application/rss+xml"/><item><title>Use Ansible to compare Cloud IP Ranges against Firewall object</title><link>https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/</link><pubDate>Thu, 28 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/</guid><description>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/cloud-ip-checks-mini.png" alt="Featured image of post Use Ansible to compare Cloud IP Ranges against Firewall object" />&lt;p>&lt;strong>A common IT Workflow exists&lt;/strong> where a Cloud provider&amp;rsquo;s public IP ranges are added to a static firewall object list.
+The reasons why this is done include: Network Address Translation (NAT), Access Control (ACL) or logging.&lt;/p>
+&lt;p>Often times, the network engineer is unaware when the Cloud Provider updates their IP ranges and thus the &lt;strong>IT Workflow is no longer in compliance&lt;/strong>.&lt;/p>
+&lt;p>We can &lt;strong>automate&lt;/strong> some of this process by setting up a job to continually check the Cloud IP ranges and &lt;strong>alert&lt;/strong> us if a change is required.&lt;/p>
+&lt;h2 id="overview">Overview&lt;/h2>
+&lt;p>The below process is specifically for &lt;a class="link" href="https://www.gstatic.com/ipranges/goog.json" target="_blank" rel="noopener"
+>Google Cloud IP Ranges&lt;/a>
+and Fortinet Firewall Objects. However, with a few tweaks
+can be ported to other services such as &lt;a class="link" href="https://api.fastly.com/public-ip-list" target="_blank" rel="noopener"
+>Fastly&lt;/a> and
+&lt;a class="link" href="https://ip-ranges.amazonaws.com/ip-ranges.json" target="_blank" rel="noopener"
+>AWS&lt;/a> as well as other firewall vendors supported by
+&lt;a class="link" href="https://docs.ansible.com/ansible/latest/collections/index.html" target="_blank" rel="noopener"
+>ansible collections&lt;/a>.&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/google-ip-checks-workflow.png"
+width="3364"
+height="4296"
+srcset="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/google-ip-checks-workflow_huac977831b8ae6d46ce075b7c3db3a8b4_918255_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/google-ip-checks-workflow_huac977831b8ae6d46ce075b7c3db3a8b4_918255_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="78"
+data-flex-basis="187px"
+>&lt;/p>
+&lt;h2 id="ansible-code">Ansible Code&lt;/h2>
+&lt;p>&lt;a class="link" href="https://github.com/kaon1/ansible-misc/blob/main/cloud-ip-ranges-checks/compare-google-ips-check-against-fortinet.yml" target="_blank" rel="noopener"
+>compare-google-ips-check-against-fortinet.yml&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="c">### This playbook will compare the list of known IPv4 Google Cloud IP addresses against&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">### the a deployed &amp;#39;address_grp&amp;#39; object in a Fortigate Firewall&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">### First we grab the json data from https://www.gstatic.com/ipranges/goog.json and extract ipv4 addresses to a list&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">### Next we grab the firewall_addrgrp called &amp;#39;google_cdn&amp;#39; on the firewall and put it into a list&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">### We run a difference of list1 vs list2. If there is a difference, the PB will throw an error and Tower sends email&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nn">---&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">PB to compare Google Cloud IPs vs current &amp;#39;google_cdn&amp;#39; object in firewall&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">hosts&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">firewall_host1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">gather_facts&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">vars&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### Fortinet specific vars for Ansible to connect - https://galaxy.ansible.com/fortinet/fortios&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">ansible_python_interpreter&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">/usr/bin/python3&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">ansible_user&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">user&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">ansible_password&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">password&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">ansible_connection&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">httpapi&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">ansible_httpapi_use_ssl&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">yes&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">ansible_httpapi_validate_certs&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">no&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">ansible_httpapi_port&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="m">443&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">ansible_network_os&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">fortinet.fortios.fortios&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">vdom&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;root&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### Variable to store list of &amp;#39;google_cdn&amp;#39; ips as a list from the user firewall&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">google_ip_list&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### Variable to store list of Google Cloud IP addresses we retrieve from the internet&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">google_cdn_ipv4_list&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### Variable to store the list difference result&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">missing_google_ips&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">tasks&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### GET request to retrieve the current json data of Google Cloud IP Ranges&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Get all google cloud ip ranges as json result&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">uri&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">url&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;https://www.gstatic.com/ipranges/goog.json&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">method&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">GET&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validate_certs&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">no&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">register&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">google_web_json_result&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### Ansible will register a change here, we can ignore it.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">delegate_to&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">localhost&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### Extract only IPv4 Addresses and add to a flat list&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">set_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">google_cdn_ipv4_list&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_cdn_ipv4_list + [ item[&amp;#39;ipv4Prefix&amp;#39;] ] }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">loop&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_web_json_result.json.prefixes }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">item[&amp;#39;ipv4Prefix&amp;#39;] is defined&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">delegate_to&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">localhost&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### Hit the firewall once here to retrieve the object. This object does not contain IP/Mask info only names&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Get google_cdn list of objects from firewall&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">fortinet.fortios.fortios_configuration_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">vdom&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ vdom }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">selector&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;firewall_addrgrp&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;google_cdn&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">register&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">google_networks_objects&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### For each name in &amp;#39;google_cdn&amp;#39; object we ask the firewall to give us back the IP/Mask info. Many API hits here.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Iterate through every Google object and extract subnet info&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">fortinet.fortios.fortios_configuration_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">vdom&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ vdom }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">selector&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;firewall_address&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ item.name }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">register&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">google_item&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">loop&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_networks_objects.meta.results[0][&amp;#39;member&amp;#39;] }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### The returned IP and Subnet info is in form 10.10.10.10 255.255.255.0. These Filters translate that to 10.10.10.10/24&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### List is populated with all &amp;#39;google_cdn&amp;#39; IP/Mask in correct format for comparison&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">set_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">google_ip_list&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_ip_list + [ item.meta.results[0].subnet | replace(&amp;#39; &amp;#39;,&amp;#39;/&amp;#39;) | ansible.netcommon.ipaddr ] }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">loop&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_item.results }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">delegate_to&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">localhost&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### Use ansible difference filter to compare list1 to list2. It shows items that are in list1 but not in list2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Show the difference in lists&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">set_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">missing_google_ips&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_cdn_ipv4_list | difference(google_ip_list) }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">delegate_to&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">localhost&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### If an IP Subnet exists in the google cdn ipv4 list but not on the firewall &amp;#39;google_cdn object&amp;#39; then&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### we fail the PB and Tower will send an email with the list&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">debug&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">msg&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;List of missing Google Subnets that need to be added to Firewall: {{ missing_google_ips }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">failed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">missing_google_ips | length&amp;gt;0&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="detailed-step-by-step">Detailed Step-by-Step&lt;/h2>
+&lt;p>Let&amp;rsquo;s dive into the step-by-step&lt;/p>
+&lt;h3 id="get-google-cloud-ip-ranges">Get Google Cloud IP Ranges&lt;/h3>
+&lt;p>Browsing to &lt;a class="link" href="https://www.gstatic.com/ipranges/goog.json" target="_blank" rel="noopener"
+>https://www.gstatic.com/ipranges/goog.json&lt;/a> returns a JSON result of IP Prefixes.&lt;/p>
+&lt;p>We can programmatically access the JSON result and store all IPv4 prefixes in an ansible list called &lt;strong>google_cdn_ipv4_list&lt;/strong>:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="c">### GET request to retrieve the current json data of Google Cloud IP Ranges&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Get all google cloud ip ranges as json result&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">uri&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">url&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;https://www.gstatic.com/ipranges/goog.json&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">method&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">GET&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validate_certs&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">no&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">register&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">google_web_json_result&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c">### Ansible will register a change here, we can ignore it.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">delegate_to&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">localhost&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">### Extract only IPv4 Addresses and add to a flat list&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>- &lt;span class="nt">set_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">google_cdn_ipv4_list&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_cdn_ipv4_list + [ item[&amp;#39;ipv4Prefix&amp;#39;] ] }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">loop&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_web_json_result.json.prefixes }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">item[&amp;#39;ipv4Prefix&amp;#39;] is defined&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">delegate_to&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">localhost&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>We can run the above tasks and print the result. Below is a printout of each dataset:
+&lt;strong>&lt;a class="link" href="https://www.gstatic.com/ipranges/goog.json" target="_blank" rel="noopener"
+>https://www.gstatic.com/ipranges/goog.json&lt;/a>&lt;/strong> and &lt;strong>google_cdn_ipv4_list&lt;/strong>&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>&lt;code>HTTP Site&lt;/code>&lt;/th>
+&lt;th>&lt;code>Ansible GET Result&lt;/code>&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss9.png"
+width="460"
+height="1012"
+srcset="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss9_hu60ee9cef8ff0bf965fb7061ff6843724_39278_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss9_hu60ee9cef8ff0bf965fb7061ff6843724_39278_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="45"
+data-flex-basis="109px"
+>&lt;/td>
+&lt;td>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss8.png"
+width="519"
+height="1033"
+srcset="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss8_huc828d96a2c27e9c13ff20b78a93172ac_46744_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss8_huc828d96a2c27e9c13ff20b78a93172ac_46744_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="50"
+data-flex-basis="120px"
+>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h3 id="get-address-group-from-fortigate">Get Address Group from Fortigate&lt;/h3>
+&lt;p>We can use the &lt;a class="link" href="https://ansible-galaxy-fortios-docs.readthedocs.io/en/latest/" target="_blank" rel="noopener"
+>ansible collection provided by Fortinet&lt;/a> to gather facts.&lt;/p>
+&lt;p>In the below task we will retrieve the firewall address group named &lt;strong>test_group_1&lt;/strong>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Get Fortigate Address Group&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">fortinet.fortios.fortios_configuration_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">vdom&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;root&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">selector&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;firewall_addrgrp&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;test_group_1&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">register&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">google_networks_objects&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>- &lt;span class="nt">debug&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">var&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">google_networks_objects.meta.results[0]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Here is a comparison of the Address Group in the Fortigate GUI and the Ansible Result:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>&lt;code>HTTP Site&lt;/code>&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss1.png"
+width="1128"
+height="933"
+srcset="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss1_hu68bd21a7ac36becb6d299577df363c4b_54886_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss1_hu68bd21a7ac36becb6d299577df363c4b_54886_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="120"
+data-flex-basis="290px"
+>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>&lt;code>Ansible Result&lt;/code>&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss2.png"
+width="460"
+height="406"
+srcset="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss2_hu5b22673545f2118ae98516235c3d88ea_16608_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss2_hu5b22673545f2118ae98516235c3d88ea_16608_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="113"
+data-flex-basis="271px"
+>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h3 id="get-each-member-of-group">Get Each Member of Group&lt;/h3>
+&lt;p>The above ansible result gives us a list of address group member names.
+We have to query the firewall again for the IP address and subnet mask of each member.&lt;/p>
+&lt;p>This task will loop through each group member:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Iterate through every Google object and extract subnet info&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">fortinet.fortios.fortios_configuration_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">vdom&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ vdom }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">selector&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;firewall_address&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">params&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ item.name }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">register&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">google_item&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">loop&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_networks_objects.meta.results[0][&amp;#39;member&amp;#39;] }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>- &lt;span class="nt">debug&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">var&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">google_item&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss3.png"
+width="635"
+height="534"
+srcset="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss3_hu7fdc66abf71d2ea76680c2328ca16b40_23173_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss3_hu7fdc66abf71d2ea76680c2328ca16b40_23173_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="118"
+data-flex-basis="285px"
+>&lt;/p>
+&lt;h3 id="extract-subnet-info-to-list">Extract Subnet Info to List&lt;/h3>
+&lt;p>The returned results need to be parsed. The &lt;code>subnet&lt;/code> field should be normalized to IP/MASK notation so
+that we can more easily run a diff later against the exisiting google cdn list that we grabbed earlier from the web.&lt;/p>
+&lt;p>We can parse each &lt;code>subnet&lt;/code> field and transfrom it to IP/MASK notation with this task:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">- &lt;span class="nt">set_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">google_ip_list&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_ip_list + [ item.meta.results[0].subnet | replace(&amp;#39; &amp;#39;,&amp;#39;/&amp;#39;) | ansible.netcommon.ipaddr ] }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">loop&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_item.results }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">delegate_to&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">localhost&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now we have a list of all IPs from the Fortigate in a normalized view (Example Data):&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="l">TASK [debug] *****************************&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">ok&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="l">localhost] =&amp;gt; {&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">&amp;#34;google_ip_list&amp;#34;: &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;1.1.1.0/24&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;2.2.0.0/22&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;3.3.3.0/30&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>}&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="data-comparison">Data Comparison&lt;/h3>
+&lt;p>We use the built-in ansible &lt;code>difference&lt;/code> filter to compare the two lists that we have extracted.&lt;/p>
+&lt;p>This is a one-way comparison, meaning we compare Google list from the web &amp;ndash;&amp;gt; Google List from the Fortigate.&lt;/p>
+&lt;p>If we wanted a full comparison, we would run this task again in reverse.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="c">### Use ansible difference filter to compare list1 to list2. It shows items that are in list1 but not in list2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Show the difference in lists&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">set_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">missing_google_ips&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ google_cdn_ipv4_list | difference(google_ip_list) }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">delegate_to&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">localhost&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">### If an IP Subnet exists in the google cdn ipv4 list but not on the firewall &amp;#39;google_cdn object&amp;#39; then&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">### we fail the PB and Tower will send an email with the list&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>- &lt;span class="nt">debug&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">msg&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;List of missing Google Subnets that need to be added to Firewall: {{ missing_google_ips }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">failed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">missing_google_ips | length&amp;gt;0&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="alerting-and-scheduling">Alerting and Scheduling&lt;/h3>
+&lt;p>We can use &lt;a class="link" href="https://github.com/ansible/awx" target="_blank" rel="noopener"
+>Ansible Tower/AWX&lt;/a> to schedule playbook execution and alerting.&lt;/p>
+&lt;p>The playbook is set to &lt;strong>fail&lt;/strong> if there is an IP in the web list that does not exist in the Fortigate list.&lt;/p>
+&lt;p>We do this so that Ansible Tower can alert on failure. More info on setting up &lt;a class="link" href="https://docs.ansible.com/ansible-tower/latest/html/userguide/notifications.html" target="_blank" rel="noopener"
+>Notifications here&lt;/a>&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss25.png"
+width="2802"
+height="964"
+srcset="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss25_hu3d3c90f43db8d5fd1b3bc80fff8e8fab_151909_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss25_hu3d3c90f43db8d5fd1b3bc80fff8e8fab_151909_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="290"
+data-flex-basis="697px"
+>&lt;/p>
+&lt;p>Similarly, job scheduling can also be setup so the task &lt;a class="link" href="https://docs.ansible.com/ansible-tower/latest/html/userguide/scheduling.html" target="_blank" rel="noopener"
+>runs daily&lt;/a>&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss35.png"
+width="1705"
+height="582"
+srcset="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss35_hu4036e937bf1aadf24f73f62bb5c1204c_97708_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/ss35_hu4036e937bf1aadf24f73f62bb5c1204c_97708_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="292"
+data-flex-basis="703px"
+>&lt;/p>
+&lt;h2 id="wrap-up">Wrap Up&lt;/h2>
+&lt;p>I hope this tutorial was useful to anyone looking to automate a common operational workflow. This playbook performs
+&lt;strong>read actions&lt;/strong>, its a good way to get started on your automation journey without worrying about making &lt;strong>breaking changes&lt;/strong>.&lt;/p>
+&lt;p>The next logical iteration for this process is to automatically update the firewall object without manual intervention.&lt;/p>
+&lt;p>Feel free to comment below or contact me on &lt;a class="link" href="https://twitter.com/Kaon_123" target="_blank" rel="noopener"
+>Twitter&lt;/a> if you have any questions.&lt;/p>
+&lt;p>Thanks!&lt;/p></description></item><item><title>Automate Network Bandwidth Testing with Python and Iperf</title><link>https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/</link><pubDate>Thu, 14 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/</guid><description>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/python-iperf-datadog-mini2.png" alt="Featured image of post Automate Network Bandwidth Testing with Python and Iperf" />&lt;p>&lt;strong>The best way for a Network Engineer to grasp automation&lt;/strong> is to begin by coding a simple problem that they
 encounter. We often use &lt;a class="link" href="https://iperf.fr/" target="_blank" rel="noopener"
 >IPERF&lt;/a> to measure the bandwidth performance of a network path.
 With a few lines of &lt;a class="link" href="https://iperf3-python.readthedocs.io/en/latest/" target="_blank" rel="noopener"
@@ -9,10 +324,10 @@ automate this task and graph the data via &lt;a class="link" href="https://www.d
 &lt;p>Nobody likes to read through pages of text and images to get to the money shot. So here it is&amp;hellip;&lt;/p>
 &lt;h3 id="datadog-graph">DataDog Graph&lt;/h3>
 &lt;p>Graph of hourly iperf3 tests:&lt;/p>
-&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-graph.png"
+&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-graph.png"
 width="1650"
 height="967"
-srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_1024x0_resize_box_3.png 1024w"
+srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 class="gallery-image"
 data-flex-grow="170"
@@ -217,10 +532,10 @@ data-flex-basis="409px"
 &lt;li>Search &lt;code>iperf3&lt;/code>&lt;/li>
 &lt;li>Find you metrics&lt;/li>
 &lt;/ul>
-&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-metrics-explorer.png"
+&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-metrics-explorer.png"
 width="1287"
 height="1005"
-srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_1024x0_resize_box_3.png 1024w"
+srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 class="gallery-image"
 data-flex-grow="128"
@@ -232,10 +547,10 @@ data-flex-basis="307px"
 &lt;li>Set your &lt;strong>Y-Axis&lt;/strong> to desired MAX setting (999 in my case)&lt;/li>
 &lt;li>Give your graph a &lt;strong>title&lt;/strong>&lt;/li>
 &lt;/ul>
-&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-create-graph.png"
+&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-create-graph.png"
 width="1655"
 height="1278"
-srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_1024x0_resize_box_3.png 1024w"
+srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 class="gallery-image"
 data-flex-grow="129"

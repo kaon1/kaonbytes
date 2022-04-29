@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>iperf on KaonBytes</title><link>https://kaonbytes.com/categories/iperf/</link><description>Recent content in iperf on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 14 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/iperf/index.xml" rel="self" type="application/rss+xml"/><item><title>Automate Network Bandwidth Testing</title><link>https://kaonbytes.com/p/automate-network-bandwidth-testing/</link><pubDate>Thu, 14 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/automate-network-bandwidth-testing/</guid><description>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/python-iperf-datadog-mini.png" alt="Featured image of post Automate Network Bandwidth Testing" />&lt;p>&lt;strong>The best way for a Network Engineer to grasp automation&lt;/strong> is to begin by coding a simple problem that they
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>iperf on KaonBytes</title><link>https://kaonbytes.com/categories/iperf/</link><description>Recent content in iperf on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 14 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/iperf/index.xml" rel="self" type="application/rss+xml"/><item><title>Automate Network Bandwidth Testing with Python and Iperf</title><link>https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/</link><pubDate>Thu, 14 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/</guid><description>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/python-iperf-datadog-mini2.png" alt="Featured image of post Automate Network Bandwidth Testing with Python and Iperf" />&lt;p>&lt;strong>The best way for a Network Engineer to grasp automation&lt;/strong> is to begin by coding a simple problem that they
 encounter. We often use &lt;a class="link" href="https://iperf.fr/" target="_blank" rel="noopener"
 >IPERF&lt;/a> to measure the bandwidth performance of a network path.
 With a few lines of &lt;a class="link" href="https://iperf3-python.readthedocs.io/en/latest/" target="_blank" rel="noopener"
@@ -9,10 +9,10 @@ automate this task and graph the data via &lt;a class="link" href="https://www.d
 &lt;p>Nobody likes to read through pages of text and images to get to the money shot. So here it is&amp;hellip;&lt;/p>
 &lt;h3 id="datadog-graph">DataDog Graph&lt;/h3>
 &lt;p>Graph of hourly iperf3 tests:&lt;/p>
-&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-graph.png"
+&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-graph.png"
 width="1650"
 height="967"
-srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_1024x0_resize_box_3.png 1024w"
+srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-graph_huce97b4b18d250323d15d8c1d27ace15d_123749_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 class="gallery-image"
 data-flex-grow="170"
@@ -217,10 +217,10 @@ data-flex-basis="409px"
 &lt;li>Search &lt;code>iperf3&lt;/code>&lt;/li>
 &lt;li>Find you metrics&lt;/li>
 &lt;/ul>
-&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-metrics-explorer.png"
+&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-metrics-explorer.png"
 width="1287"
 height="1005"
-srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_1024x0_resize_box_3.png 1024w"
+srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-metrics-explorer_hu607ff2294a8588b550f3ef6b36ca6833_108200_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 class="gallery-image"
 data-flex-grow="128"
@@ -232,10 +232,10 @@ data-flex-basis="307px"
 &lt;li>Set your &lt;strong>Y-Axis&lt;/strong> to desired MAX setting (999 in my case)&lt;/li>
 &lt;li>Give your graph a &lt;strong>title&lt;/strong>&lt;/li>
 &lt;/ul>
-&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-create-graph.png"
+&lt;p>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-create-graph.png"
 width="1655"
 height="1278"
-srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_1024x0_resize_box_3.png 1024w"
+srcset="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/dd-create-graph_hufff5922d1397208331e3d5d7da3e84b6_132997_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 class="gallery-image"
 data-flex-grow="129"

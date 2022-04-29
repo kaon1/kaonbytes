@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Pages on KaonBytes</title><link>https://kaonbytes.com/page/</link><description>Recent content in Pages on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 20 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/page/index.xml" rel="self" type="application/rss+xml"/><item><title>About</title><link>https://kaonbytes.com/about/</link><pubDate>Wed, 20 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/about/</guid><description>&lt;h2 id="intro">Intro&lt;/h2>
-&lt;p>&lt;strong>As a Network Engineer&lt;/strong>, I love to get hands-on and solve complex problems. I&amp;rsquo;ve been able to combine my
+&lt;p>&lt;strong>As a Network Engineer&lt;/strong>, I like to get hands-on and solve complex problems. I&amp;rsquo;ve been able to combine my
 networking skills with my Master&amp;rsquo;s in computer science to create automation tools and practices for my teams.&lt;/p>
 &lt;p>I decided to start publishing content for a couple of reasons:&lt;/p>
 &lt;ul>
@@ -33,8 +33,7 @@ This type of environment forced me to start building tools:&lt;/p>
 &lt;p>&lt;strong>&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;-&lt;/strong>&lt;/p>
 &lt;p>&lt;strong>The next phase of my career&lt;/strong>, I moved to a &lt;a class="link" href="https://www.pgi.com/virtual-events/webcast/" target="_blank" rel="noopener"
 >live webcasting company&lt;/a> as a Network Engineer on the DevOps team.&lt;/p>
-&lt;p>Working on a &lt;strong>live&lt;/strong> webcast production network can be intense.
-Imagine a Fortune100 firm with 50,000 employees hosting a live TownHall on your platform&amp;hellip; the margin for error is very small.&lt;/p>
+&lt;p>Working on a &lt;strong>live&lt;/strong> webcast production network can be intense&amp;hellip;the margin for network error is very small.&lt;/p>
 &lt;p>I did some typical network work here such as:&lt;/p>
 &lt;ul>
 &lt;li>DataCenter migrations and refreshes&lt;/li>
@@ -63,15 +62,16 @@ for an Infra team but at least I learned it!&lt;/li>
 &lt;p>It keeps things fun!&lt;/p>
 &lt;ul>
 &lt;li>I am focusing my efforts on implementing systems and practices to improve network operations and visibility.&lt;/li>
-&lt;li>Building out and maintaining a source-of-truth, an automation platform and using CI/CD processes.&lt;/li>
+&lt;li>Maintaining a source-of-truth, an automation platform and using software defined processes to improve business workflows.&lt;/li>
 &lt;li>I believe solving a problem is only 50% of the job. The other half is documentation and knowledge sharing. As I build
-these processes I try to document and setup team sharing sessions as much as possible.&lt;/li>
+these processes, explicit documentation (and implicit via IaC + code commenting) is key.
+I also setup team sharing sessions to make sure everyone is included at any level of their progression.&lt;/li>
 &lt;/ul>
 &lt;h2 id="interests">Interests&lt;/h2>
 &lt;ul>
-&lt;li>I love to BBQ. When I&amp;rsquo;m not chasing my kids around the park I&amp;rsquo;m smoking some ribs or brisket!&lt;/li>
+&lt;li>As a parent of young toddlers its hard to have interests but I enjoy BBQ, Cycling and Baseball as hobbies.&lt;/li>
 &lt;li>I&amp;rsquo;m a homelab enthusiast with all the bells and whistles setup in my basement.&lt;/li>
-&lt;li>I love keeping up with tech. I follow the usual network engineering community on twitter.
+&lt;li>I enjoy keeping up with tech. I follow the usual network engineering community on twitter.
 Feel free to &lt;a class="link" href="https://twitter.com/Kaon_123" target="_blank" rel="noopener"
 >contact me&lt;/a>&lt;/li>
 &lt;/ul></description></item><item><title>Archives</title><link>https://kaonbytes.com/archives/</link><pubDate>Tue, 28 May 2019 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/archives/</guid><description/></item><item><title>Search</title><link>https://kaonbytes.com/search/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/search/</guid><description/></item></channel></rss>
