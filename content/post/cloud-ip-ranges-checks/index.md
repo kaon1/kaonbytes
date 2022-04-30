@@ -125,6 +125,15 @@ can be ported to other services such as [Fastly](https://api.fastly.com/public-i
         msg: "List of missing Google Subnets that need to be added to Firewall: {{ missing_google_ips }}"
       failed_when: missing_google_ips | length>0
 ```
+### Results
+
+* **No Difference Detected:**
+
+![](ss55.png)
+
+* **Difference Detected:**
+
+![](ss45.png)
 
 ## Detailed Step-by-Step
 Let's dive into the step-by-step
