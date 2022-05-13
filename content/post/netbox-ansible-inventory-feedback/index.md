@@ -1,13 +1,14 @@
 +++
 author = "Kaon Thana"
 title = "Netbox Dynamic Inventory for Ansible as a feedback loop"
-date = "2022-05-06"
+date = "2022-05-13"
 description = "Using Netbox as an Inventory Source of Truth for Ansible while gathering facts to inject back to Netbox"
 categories = [
     "ansible",
-    "netdevops",
+    "automation",
     "netbox",
     "juniper",
+    "netdevops"
 ]
 
 aliases = ["netbox-ansible-feedback"]
