@@ -2,7 +2,7 @@
 author = "Kaon Thana"
 title = "BGPAlerter As Code Using A Terraform Pipeline"
 date = "2022-08-12"
-description = "Running the BGPAlerter project as a container in AWS Fargate and managing the infrastructure configuration changes via a Github Terraform Drone CICD process"
+description = "Running the BGPAlerter project as a container in AWS Fargate and managing the infrastructure configuration changes via a Github Terraform Drone process"
 categories = [
     "terraform",
     "observability",
@@ -56,7 +56,7 @@ bespoke pet projects that are hard to keep in sync, maintain or document.
 ## The Code
 * Github Repo of the Code can be [found here](https://github.com/kaon1/bgpalerter-as-code)
 * This repo and blog post are not meant to be "plug-and-play" ready, there are some parts of the infrastructure omitted (such as the VPC, Route53 etc)
-* The key **learning takeaways** of this guide is how to format the drone.yml, Dockerfile, ecr.tf and ecs.tf files
+* The key **learning takeaways** of this guide are how to format the drone.yml, Dockerfile, ecr.tf and ecs.tf files
 * Credit goes to the devops folks at my org from whom I borrowed much of the terraform code and made my own tweaks as needed
 
 ### Components
@@ -350,9 +350,10 @@ resource "aws_ecs_task_definition" "task_definition" {
 ![](bgpalerter-email.png)
 
 **The Alert email** provides a link to BGPLay which lets you view the event in a graphed form
+
 ![](bgpalerter-bgplay.png)
 
 ## Final Thoughts
 **As a Network Engineer**, I often find it hard to grasp abstract concepts of software development. In my experience,
-the best way to learn these concepts such as IaC and CICD is to port over something you **know** (like a networking tool)
+the best way to learn these concepts is to port over something you **know** (like a networking tool)
 into a new system. Hopefully, this post will help others in their journey. Thanks for reading!
