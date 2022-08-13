@@ -78,7 +78,7 @@ data-flex-basis="315px"
 &lt;li>Github Repo of the Code can be &lt;a class="link" href="https://github.com/kaon1/bgpalerter-as-code" target="_blank" rel="noopener"
 >found here&lt;/a>&lt;/li>
 &lt;li>This repo and blog post are not meant to be &amp;ldquo;plug-and-play&amp;rdquo; ready, there are some parts of the infrastructure omitted (such as the VPC, Route53 etc)&lt;/li>
-&lt;li>The key &lt;strong>learning takeaways&lt;/strong> of this guide is how to format the drone.yml, Dockerfile, ecr.tf and ecs.tf files&lt;/li>
+&lt;li>The key &lt;strong>learning takeaways&lt;/strong> of this guide are how to format the drone.yml, Dockerfile, ecr.tf and ecs.tf files&lt;/li>
 &lt;li>Credit goes to the devops folks at my org from whom I borrowed much of the terraform code and made my own tweaks as needed&lt;/li>
 &lt;/ul>
 &lt;h3 id="components">Components&lt;/h3>
@@ -348,7 +348,7 @@ data-flex-basis="334px"
 &lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-ecr.png"
 width="1709"
 height="1310"
-srcset="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-ecr_hu6f8321a5643274592d3f79b0a76b0444_239773_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-ecr_hu6f8321a5643274592d3f79b0a76b0444_239773_1024x0_resize_box_3.png 1024w"
+srcset="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-ecr_hu68272cb75c34f102a0df9f042170f889_225510_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-ecr_hu68272cb75c34f102a0df9f042170f889_225510_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 class="gallery-image"
 data-flex-grow="130"
@@ -411,8 +411,8 @@ class="gallery-image"
 data-flex-grow="107"
 data-flex-basis="257px"
 >&lt;/p>
-&lt;p>&lt;strong>The Alert email&lt;/strong> provides a link to BGPLay which lets you view the event in a graphed form
-&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-bgplay.png"
+&lt;p>&lt;strong>The Alert email&lt;/strong> provides a link to BGPLay which lets you view the event in a graphed form&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-bgplay.png"
 width="1713"
 height="1345"
 srcset="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-bgplay_hu0a4da39dd9e35c3b2defba4dc07db06e_145797_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-bgplay_hu0a4da39dd9e35c3b2defba4dc07db06e_145797_1024x0_resize_box_3.png 1024w"
@@ -423,5 +423,5 @@ data-flex-basis="305px"
 >&lt;/p>
 &lt;h2 id="final-thoughts">Final Thoughts&lt;/h2>
 &lt;p>&lt;strong>As a Network Engineer&lt;/strong>, I often find it hard to grasp abstract concepts of software development. In my experience,
-the best way to learn these concepts such as IaC and CICD is to port over something you &lt;strong>know&lt;/strong> (like a networking tool)
+the best way to learn these concepts is to port over something you &lt;strong>know&lt;/strong> (like a networking tool)
 into a new system. Hopefully, this post will help others in their journey. Thanks for reading!&lt;/p></description></item></channel></rss>
