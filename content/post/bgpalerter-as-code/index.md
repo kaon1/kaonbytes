@@ -45,23 +45,21 @@ bespoke pet projects that are hard to keep in sync, maintain or document.
 
 ## The Solution
 
-**High Level Diagram**
+### High Level Diagram
 
 ![](hld.png)
 
-**Drone Process**
+### Drone Process
 
 ![](drone.png)
 
-## The Code
+### The Code
 * Github Repo of the Code can be [found here](https://github.com/kaon1/bgpalerter-as-code)
 * This repo and blog post are not meant to be "plug-and-play" ready, there are some parts of the infrastructure omitted (such as the VPC, Route53 etc)
 * The key **learning takeaways** of this guide are how to format the drone.yml, Dockerfile, ecr.tf and ecs.tf files
 * Credit goes to the devops folks at my org from whom I borrowed much of the terraform code and made my own tweaks as needed
 
-### Components
-
-**prefix.yml**
+#### prefix.yml
 
 **The source file** that BGPAlerter reads of which prefixes and ASNs to monitor
 ```yaml
@@ -105,7 +103,7 @@ options:
     historical: true
     group: noc
 ```
-**Dockerfile**
+#### Dockerfile
 
 **Instructions** that Drone uses to build your docker image. This image is later pushed to AWS ECR
 ```dockerfile
@@ -121,7 +119,7 @@ COPY bgpalerter/slack-token-replace.sh /opt/bgpalerter/volume/slack-token-replac
 ### open port 8011 for status checks
 EXPOSE 8011
 ```
-**Drone File**
+#### Drone File
 
 **The Drone file** are the steps that drone takes to build the infrastructure. This file consists of two sections 
 * First, build the docker image and push it to ECR
@@ -206,7 +204,7 @@ steps:
      event: push
      branch: main
 ```
-**Slack Webhook Script**
+#### Slack Webhook Script
 
 **Slack Webhooks** are sensitive, and should not be committed to Github. This script grabs the slackwebhook from a tf env
 variable and uses sed to load it into confi.yml.
@@ -219,7 +217,8 @@ ESCAPED_REPLACE=$(printf '%s\n' "$SLACK_API_TOKEN" | sed -e 's/[\/&]/\\&/g')
 /bin/cat /opt/bgpalerter/volume/config.yml
 /usr/local/bin/npm run serve -- --d /opt/bgpalerter/volume/
 ```
-**ECR Terraform File**
+
+#### ECR Terraform File
 
 **Builds** the Elastic Container Registry in AWS
 ```hcl-terraform
@@ -234,7 +233,9 @@ resource "aws_ecr_repository" "app_image" {
   }
 }
 ```
-**ECS Terraform File**
+
+#### ECS Terraform File
+
 **Builds** the Elastic Container Service in AWS
 ```hcl-terraform
 ### ECS File creates the Fargate service for the docker container
@@ -319,31 +320,31 @@ resource "aws_ecs_task_definition" "task_definition" {
 }
 ```
 
-## The Results
+### The Results
 
-**Drone Build Progress**
+#### Drone Build Progress
 
 ![](bgpalerter-drone-build-in-progress.png)
 
 ![](bgpalerter-drone-build-complete.png)
 
-**Deployed Infrastructure - Elastic Container Registry**
+#### Deployed Infrastructure - Elastic Container Registry
 
 ![](bgpalerter-ecr.png)
 
-**Deployed Infrastructure - Elastic Container Service and Fargate**
+#### Deployed Infrastructure - Elastic Container Service and Fargate
 
 ![](bgpalerter-ecs.png)
 
 ![](bgpalerter-running-task.png)
 
-**BGPAlerter Running and Status**
+#### BGPAlerter Running and Status
 
 ![](bgpalerter-logs.png)
 
 ![](bgpalerter-status-page.png)
 
-**Notifications**
+#### Notifications
 
 ![](bgpalerter-slack.png)
 
