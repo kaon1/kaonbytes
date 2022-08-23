@@ -53,7 +53,7 @@ bespoke pet projects that are hard to keep in sync, maintain or document.&lt;/p>
 &lt;/li>
 &lt;/ul>
 &lt;h2 id="the-solution">The Solution&lt;/h2>
-&lt;p>&lt;strong>High Level Diagram&lt;/strong>&lt;/p>
+&lt;h3 id="high-level-diagram">High Level Diagram&lt;/h3>
 &lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/hld.png"
 width="4244"
 height="4344"
@@ -63,7 +63,7 @@ class="gallery-image"
 data-flex-grow="97"
 data-flex-basis="234px"
 >&lt;/p>
-&lt;p>&lt;strong>Drone Process&lt;/strong>&lt;/p>
+&lt;h3 id="drone-process">Drone Process&lt;/h3>
 &lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/drone.png"
 width="4332"
 height="3300"
@@ -73,7 +73,7 @@ class="gallery-image"
 data-flex-grow="131"
 data-flex-basis="315px"
 >&lt;/p>
-&lt;h2 id="the-code">The Code&lt;/h2>
+&lt;h3 id="the-code">The Code&lt;/h3>
 &lt;ul>
 &lt;li>Github Repo of the Code can be &lt;a class="link" href="https://github.com/kaon1/bgpalerter-as-code" target="_blank" rel="noopener"
 >found here&lt;/a>&lt;/li>
@@ -81,8 +81,7 @@ data-flex-basis="315px"
 &lt;li>The key &lt;strong>learning takeaways&lt;/strong> of this guide are how to format the drone.yml, Dockerfile, ecr.tf and ecs.tf files&lt;/li>
 &lt;li>Credit goes to the devops folks at my org from whom I borrowed much of the terraform code and made my own tweaks as needed&lt;/li>
 &lt;/ul>
-&lt;h3 id="components">Components&lt;/h3>
-&lt;p>&lt;strong>prefix.yml&lt;/strong>&lt;/p>
+&lt;h4 id="prefixyml">prefix.yml&lt;/h4>
 &lt;p>&lt;strong>The source file&lt;/strong> that BGPAlerter reads of which prefixes and ASNs to monitor&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">1.1.1.0/23&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">description&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">ABCDEFG&lt;/span>&lt;span class="w">
@@ -123,7 +122,7 @@ data-flex-basis="315px"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">monitoredASes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">historical&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">group&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">noc&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>Dockerfile&lt;/strong>&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="dockerfile">Dockerfile&lt;/h4>
 &lt;p>&lt;strong>Instructions&lt;/strong> that Drone uses to build your docker image. This image is later pushed to AWS ECR&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-dockerfile" data-lang="dockerfile">&lt;span class="line">&lt;span class="cl">&lt;span class="c">### Pull latest bgpalerter container from nttgin docker hub&lt;/span>&lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="s"> nttgin/bgpalerter:latest&lt;/span>&lt;span class="err">
@@ -136,7 +135,7 @@ data-flex-basis="315px"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="c">### open port 8011 for status checks&lt;/span>&lt;span class="err">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="k">EXPOSE&lt;/span>&lt;span class="s"> 8011&lt;/span>&lt;span class="err">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>Drone File&lt;/strong>&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="drone-file">Drone File&lt;/h4>
 &lt;p>&lt;strong>The Drone file&lt;/strong> are the steps that drone takes to build the infrastructure. This file consists of two sections&lt;/p>
 &lt;ul>
 &lt;li>First, build the docker image and push it to ECR&lt;/li>
@@ -220,7 +219,7 @@ data-flex-basis="315px"
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">event&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">push&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">branch&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">main&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>Slack Webhook Script&lt;/strong>&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="slack-webhook-script">Slack Webhook Script&lt;/h4>
 &lt;p>&lt;strong>Slack Webhooks&lt;/strong> are sensitive, and should not be committed to Github. This script grabs the slackwebhook from a tf env
 variable and uses sed to load it into confi.yml.
 This is done before the BGPAlerter service is started on the container.&lt;/p>
@@ -230,7 +229,7 @@ This is done before the BGPAlerter service is started on the container.&lt;/p>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/bin/sed -i &lt;span class="s2">&amp;#34;s/slacktokentobereplaced/&lt;/span>&lt;span class="nv">$ESCAPED_REPLACE&lt;/span>&lt;span class="s2">/g&amp;#34;&lt;/span> /opt/bgpalerter/volume/config.yml
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/bin/cat /opt/bgpalerter/volume/config.yml
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/local/bin/npm run serve -- --d /opt/bgpalerter/volume/
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>ECR Terraform File&lt;/strong>&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="ecr-terraform-file">ECR Terraform File&lt;/h4>
 &lt;p>&lt;strong>Builds&lt;/strong> the Elastic Container Registry in AWS&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">###This file creates the ECR repository for the docker image.
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
@@ -242,8 +241,8 @@ This is done before the BGPAlerter service is started on the container.&lt;/p>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scan_on_push = true
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>ECS Terraform File&lt;/strong>
-&lt;strong>Builds&lt;/strong> the Elastic Container Service in AWS&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="ecs-terraform-file">ECS Terraform File&lt;/h4>
+&lt;p>&lt;strong>Builds&lt;/strong> the Elastic Container Service in AWS&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-zed" data-lang="zed">&lt;span class="line">&lt;span class="cl">&lt;span class="err">###&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ECS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">File&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">creates&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Fargate&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">service&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">for&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">docker&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">container&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">###&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Sets&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">CPU&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">and&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">RAM&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">###&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Creates&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bgpalerter&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">task&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kt">definition&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">and&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">runs&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">it&lt;/span>&lt;span class="w">
@@ -324,8 +323,8 @@ This is done before the BGPAlerter service is started on the container.&lt;/p>
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="the-results">The Results&lt;/h2>
-&lt;p>&lt;strong>Drone Build Progress&lt;/strong>&lt;/p>
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="the-results">The Results&lt;/h3>
+&lt;h4 id="drone-build-progress">Drone Build Progress&lt;/h4>
 &lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-drone-build-in-progress.png"
 width="1716"
 height="1229"
@@ -344,7 +343,7 @@ class="gallery-image"
 data-flex-grow="139"
 data-flex-basis="334px"
 >&lt;/p>
-&lt;p>&lt;strong>Deployed Infrastructure - Elastic Container Registry&lt;/strong>&lt;/p>
+&lt;h4 id="deployed-infrastructure---elastic-container-registry">Deployed Infrastructure - Elastic Container Registry&lt;/h4>
 &lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-ecr.png"
 width="1709"
 height="1310"
@@ -354,7 +353,7 @@ class="gallery-image"
 data-flex-grow="130"
 data-flex-basis="313px"
 >&lt;/p>
-&lt;p>&lt;strong>Deployed Infrastructure - Elastic Container Service and Fargate&lt;/strong>&lt;/p>
+&lt;h4 id="deployed-infrastructure---elastic-container-service-and-fargate">Deployed Infrastructure - Elastic Container Service and Fargate&lt;/h4>
 &lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-ecs.png"
 width="1708"
 height="1254"
@@ -373,7 +372,7 @@ class="gallery-image"
 data-flex-grow="134"
 data-flex-basis="322px"
 >&lt;/p>
-&lt;p>&lt;strong>BGPAlerter Running and Status&lt;/strong>&lt;/p>
+&lt;h4 id="bgpalerter-running-and-status">BGPAlerter Running and Status&lt;/h4>
 &lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-logs.png"
 width="1699"
 height="1248"
@@ -392,7 +391,7 @@ class="gallery-image"
 data-flex-grow="695"
 data-flex-basis="1670px"
 >&lt;/p>
-&lt;p>&lt;strong>Notifications&lt;/strong>&lt;/p>
+&lt;h4 id="notifications">Notifications&lt;/h4>
 &lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-slack.png"
 width="821"
 height="194"
