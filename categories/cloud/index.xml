@@ -768,8 +768,14 @@ The S3 bucket has versioning enbaled, so we can keep track of changes over a per
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">path&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">templates/failed_s3.txt&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">line&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;ERROR S3 SYNC FAILED&amp;#34;&lt;/span>&lt;span class="w">
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="example-of-a-backed-up-versioned-config">Example of a backed up versioned config&lt;/h4>
-&lt;p>&lt;img src="https://kaonbytes.com/s3-summary.png"
+&lt;p>&lt;img src="https://kaonbytes.com/p/ansible-configuration-backup-manager/s3-summary.png"
+width="1331"
+height="1066"
+srcset="https://kaonbytes.com/p/ansible-configuration-backup-manager/s3-summary_hu77a332913e065ee35c899f019283fa0d_169149_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/ansible-configuration-backup-manager/s3-summary_hu77a332913e065ee35c899f019283fa0d_169149_1024x0_resize_box_3.png 1024w"
 loading="lazy"
+class="gallery-image"
+data-flex-grow="124"
+data-flex-basis="299px"
 >&lt;/p>
 &lt;h3 id="notifications-and-health-checking">Notifications and Health Checking&lt;/h3>
 &lt;h4 id="jinja2-email-template">Jinja2 Email Template&lt;/h4>
