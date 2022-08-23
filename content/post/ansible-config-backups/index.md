@@ -1,7 +1,7 @@
 +++
 author = "Kaon Thana"
 title = "Ansible Configuration Backup Manager"
-date = "2022-08-22"
+date = "2022-08-23"
 description = "Create a vendor agnostic network backup utility with Ansible and AWS S3"
 categories = [
     "ansible",
@@ -26,39 +26,39 @@ In this guide, I will detail how we can build such a tool and meet the following
 * Health Check of the Backup Tool
 - Currently Supported Vendors/OS:
   - Opengear
-  - ArubaOS
+  - Aruba AOS
   - Cisco ASA and IOS
-  - Fortios
-  - Junos
+  - Fortinet Fortios
+  - Juniper Junos
   - Citrix Netscaler
   - Big-IP F5
   - Arista EOS
 
-A **read-only** recurring Ansible playbook is a great way to get started in network automation of your enterprise gear because:
+A **read-only** recurring Ansible playbook, like the one we are discussing, is a great way to get started in network automation of your enterprise gear because:
 
-* The playbook does not make confuguration changes to your remote devices
-* Your playbook has to touch every device and every type of device you have in your network (different vendors such as Cisco, Juniper, Aruba)
-* Authentication and connectivty from the ansible server to the remote network devices need to function correclty on every run
+* The playbook does **not** make confuguration changes to your remote devices
+* Your playbook has to touch every device in your network. That means **Authentication, Connecticty, and Ansible Modules** must all be correct on every run.
+  * Getting this all working the first time takes some effort but will pay off in future projects.
 
 
 
 ## Workflow
 Below is a diagram of the expected workflow operation of the ansible playbook.
-1. Dynamically populate Ansible Inventory list with current devices **tagged** for backup. 
-2. Depending on device OS (grabbed from netbox) call a specific **Ansible task** to perform system backup on each device
-3. Store all system backups locally and sync to a versioned S3 Bucket with **Ansible S3 Sync Task**
+1. Grab inventory list from Netbox with devices **tagged** for backup. 
+2. Call a specific **Ansible task** to perform system backup on each device
+3. Store all system backups locally and sync to a version controlled **S3 Bucket**
 4. Maintain a **summary of failed or successful** device backup actions and create report to Email
 5. Update local status.txt file to be polled by outside **monitoring** system
 
 ![](workflow-backups.png)
 
-## The Results
+## The Solution
 
 Github Repo can be found here - [Ansible Configuration Backup Manager](https://github.com/kaon1/configuration-backup-manager)
 
 ### Running the playbook
 
-Here is an example output of running the playbook against 8 hosts each on a different network operating system (the vendors listed above). This playbook has been tested to run on over 1000 network devices in a single execution.
+Here is an example output of running the playbook against 8 hosts each on a different network operating system. This playbook has been run on hundreds of network devices in production environments.
 
 Command:
 
@@ -223,7 +223,79 @@ The playbook generates an Email Template which gets sent out as the final task.
 
 ![](ncm-summary.png)
 
+### The Netbox Dynamic Inventory 
+
+Ansible calls the netbox API and grabs a list of **inventory-to-be-backed-up** by filtering for a specified **tag**.
+
+Additionally, we pass other important data to the inventory such as:
+* ansible_network_os
+* ansible_connection
+
+#### netbox_inventory.yml
+[Source](https://github.com/kaon1/configuration-backup-manager/blob/main/netbox_inventory.yml)
+```yaml
+---
+plugin: netbox.netbox.nb_inventory
+api_endpoint: "<netbox-url>"
+token: token
+validate_certs: false
+config_context: false
+compose:
+ ansible_network_os: platform.slug
+ ansible_connection: custom_fields.ansible_connection
+device_query_filters:
+  - status: 'active'
+  - tag: 'ncm_backup'
+```
+
+#### Example of Dynamic Inventory Pull
+```sh
+[root@ncm]# ansible-inventory -i netbox_inventory.yml --host junos1
+{
+    "ansible_connection": "netconf",
+    "ansible_host": "10.10.10.10",
+    "ansible_network_os": "junos",
+    "custom_fields": {
+        "ansible_connection": "netconf",
+        "code_version": "xxx"
+    },
+    "device_roles": [
+        "access_switch"
+    ],
+    "device_types": [
+        "ex4300-48p"
+    ],
+    "is_virtual": false,
+    "local_context_data": [
+        null
+    ],
+    "locations": [],
+    "manufacturers": [
+        "juniper"
+    ],
+    "platforms": [
+        "junos"
+    ],
+    "primary_ip4": "10.10.10.10",
+    "regions": [
+        "americas"
+    ],
+    "services": [],
+    "sites": [
+        "xxx1"
+    ],
+    "status": {
+        "label": "Active",
+        "value": "active"
+    },
+    "tags": [
+        "ncm_backup",
+    ]
+}
+```
+
 ### The Main File
+[source](https://github.com/kaon1/configuration-backup-manager/blob/main/ncm-engine.yml)
 ```yaml
 ---
 - name: "PLAY TO BACKUP NETWORK CONFIGURATIONS"
@@ -340,10 +412,33 @@ The playbook generates an Email Template which gets sent out as the final task.
         subject: 'Ansible NCM Job Completion'
         body: "{{ lookup('file', '/root/configuration-backup-manager/templates/backup_state.txt')}}"
 ```
+The above playbook performs the following actions:
+* Initializes some local flat text files called **successful_hosts** -- **failed_hosts** -- **total_hosts** -- **failed_s3.txt**
+  * The playbook performs writes to these files to keep track of stats per host to generate a report later on
+* Uses `include_role` to include the `generate-backups` folder of tasks.
+  * The [main.yml](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/main.yml) file in the `generate-backups` is how we call each backup task based on vendor OS
+* Sync the local config-backups directory to s3 using the `community.aws.s3_sync` library
+* Builds and sends an email report using a jinja2 template and the previously mentioned text files as variables
+
+
 
 ### The Backup Tasks
 
+#### tasks/main.yml
+
+One line `include_task` which uses the **vendor OS** to call the desired backup task. [Source can be found here](https://github.com/kaon1/configuration-backup-manager/tree/main/roles/generate-backups/tasks)
+
+```yaml
+---
+- include_tasks: "{{ role_path }}/tasks/{{ ansible_network_os }}-backup-config.yml"
+```
+
 #### Cisco IOS
+
+The [below playbook](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/ios-backup-config.yml) calls the **Cisco ios_config** library to backup the device and register the output locally.
+
+We use ansible_connection: **network_cli** (as defined in netbox inventory) and plain user and password which can be defined as an enviornment variable or through some more secure method (Ansible Vault, Hashicorp Vault, etc) if desired.
+
 ```yaml
 ---
 - name: IOS CISCO
@@ -374,36 +469,505 @@ The playbook generates an Email Template which gets sent out as the final task.
         line: "{{ inventory_hostname }}"
       delegate_to: localhost
       throttle: 1
-```
+``` 
+
+
 #### Cisco ASA
+Similarly, the [ASA Playbook](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/asa-backup-config.yml) uses the asa_config library.
+
 ```yaml
+---
+- name: ASA CISCO
+  block:
+    - name: Backup ASA Device
+      vars:
+        ansible_user: "username"
+        ansible_password: pwd
+      asa_config:
+         backup: yes
+         backup_options:
+           filename: "{{ net_backup_filename }}"
+           dir_path: "{{ network_backup_dir }}"
+      register: backupinfo
+
+    - name: Add SUCCESS line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/successful_hosts.txt
+        line: "{{ inventory_hostname }}"
+      when: backupinfo is defined
+      delegate_to: localhost
+      throttle: 1
+
+  rescue:
+    - name: Add ERROR line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/failed_hosts.txt
+        line: "{{ inventory_hostname }}"
+      delegate_to: localhost
+      throttle: 1
 ```
 #### Juniper Junos
+
+For [Juniper devices](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/junos-backup-config.yml), we use the **junipernetworks.junos** library and the **netconf** ansible_connection on port 930
+
 ```yaml
+---
+- name: JUNOS
+  block:
+    - name: grab and download junos config
+      vars:
+        ansible_user: un
+        ansible_ssh_private_key_file: key
+#        ansible_connection: netconf
+      junipernetworks.junos.junos_config:
+        backup: yes
+        backup_options:
+          filename: "{{ net_backup_filename }}"
+          dir_path: "{{ network_backup_dir }}"
+      register: config_output
+
+    - name: Add SUCCESS line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/successful_hosts.txt
+        line: "{{ inventory_hostname }}"
+      when: config_output is defined
+      delegate_to: localhost
+      throttle: 1
+
+  rescue:
+    - name: Add ERROR line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/failed_hosts.txt
+        line: "{{ inventory_hostname }}"
+      delegate_to: localhost
+      throttle: 1
 ```
 #### Aruba AOS
+For [Aruba AOS devices](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/aos-backup-config.yml) we use the **HTTPAPI** over port 4343 
+
 ```yaml
+---
+- name: ARUBA
+  block:
+    - name: grab and download aruba config
+      vars:
+        ansible_httpapi_port: 4343
+        ansible_httpapi_validate_certs: False
+        ansible_httpapi_use_ssl: True
+        ansible_user: username
+        ansible_password: pwd
+      aos_show_command:
+        command: show running-config
+      register: aos_output
+
+    - name: Save the backup information.
+      copy:
+        content: '{{ aos_output.msg._data[0] }}'
+        dest: "{{ network_backup_dir }}/{{ net_backup_filename }}"
+      delegate_to: localhost
+
+    - name: Add SUCCESS line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/successful_hosts.txt
+        line: "{{ inventory_hostname }}"
+      when: aos_output is defined
+      delegate_to: localhost
+      throttle: 1
+
+  rescue:
+    - name: Add ERROR line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/failed_hosts.txt
+        line: "{{ inventory_hostname }}"
+      delegate_to: localhost
+      throttle: 1
 ```
 #### Fortinet FortiOS
+[Fortinet devices](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/fortios-backup-config.yml) are also connected via the ansible_httpapi over port 443 using the **fortinet.fortios** library
 ```yaml
+---
+- name: FORTIOS
+  block:
+    - name: Backup Fortigate Device
+      vars:
+        ansible_httpapi_use_ssl: yes
+        ansible_httpapi_validate_certs: no
+        ansible_httpapi_port: 443
+        ansible_user: "username"
+        ansible_password: pwd
+#        ansible_connection: httpapi
+      fortinet.fortios.fortios_monitor_fact:
+         selector: 'system_config_backup'
+         vdom: 'root'
+         params:
+             scope: 'global'
+      register: backupinfo
+
+    - name: Save the backup information.
+      copy:
+         content: '{{ backupinfo.meta.raw }}'
+         dest: "{{ network_backup_dir }}/{{ net_backup_filename }}"
+
+    - name: Add SUCCESS line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/successful_hosts.txt
+        line: "{{ inventory_hostname }}"
+      when: backupinfo is defined
+      delegate_to: localhost
+      throttle: 1
+
+  rescue:
+    - name: Add ERROR line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/failed_hosts.txt
+        line: "{{ inventory_hostname }}"
+      delegate_to: localhost
+      throttle: 1
 ```
 #### Citrix Netscaler
+For [Citrix Netscaler devices](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/citrix-backup-config.yml) we can use any basic cli_command library. In this case, I set the network_os to be **vyos** because I did not want to interfere with the cisco IOS devices.
 ```yaml
+---
+- name: CITRIX NETSCALER
+  block:
+    - name: grab and download citrix config
+      vars:
+        ansible_user: <un>
+        ansible_password: <pwd>
+        ansible_network_os: vyos
+      cli_command:
+        command: show ns runningConfig
+      register: citrix_output
+
+    - name: Save the backup information.
+      copy:
+        content: '{{ citrix_output.stdout_lines | to_nice_json }}'
+        dest: "{{ network_backup_dir }}/{{ net_backup_filename }}"
+      delegate_to: localhost
+
+    - name: Add SUCCESS line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/successful_hosts.txt
+        line: "{{ inventory_hostname }}"
+      when: citrix_output is defined
+      delegate_to: localhost
+      throttle: 1
+
+  rescue:
+    - name: Add ERROR line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/failed_hosts.txt
+        line: "{{ inventory_hostname }}"
+      delegate_to: localhost
+      throttle: 1
 ```
 #### Big IP F5
+The [BIG IP F5](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/big-ip-backup-config.yml) task uses a legacy library running as **ansible_connection local**
 ```yaml
+---
+- name: F5 BIG-IP
+  block:
+    - name: grab and download big-ip config
+      bigip_command:
+        commands:
+          - show running-config
+        provider:
+          server: "{{ ansible_host }}"
+          password: pwd
+          user: un
+          validate_certs: no
+          transport:  cli
+      register: bigip_result
+      delegate_to: localhost
+
+    - name: Save the backup information.
+      copy:
+        content: '{{ bigip_result.stdout_lines | to_nice_json }}'
+        dest: "{{ network_backup_dir }}/{{ net_backup_filename }}"
+      delegate_to: localhost
+
+    - name: Add SUCCESS line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/successful_hosts.txt
+        line: "{{ inventory_hostname }}"
+      when: bigip_result is defined
+      delegate_to: localhost
+      throttle: 1
+
+  rescue:
+    - name: Add ERROR line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/failed_hosts.txt
+        line: "{{ inventory_hostname }}"
+      delegate_to: localhost
+      throttle: 1
 ```
 #### OpenGear
+
+For [OpenGear devices](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/opengear-backup-config.yml) we can run a **raw SSH command** and register the output.
+
 ```yaml
+---
+- name: OPENGEAR
+  block:
+    - name: grab and download opengear config
+      vars:
+        ansible_port: 22
+        ansible_user: un
+        ansible_password: pwd
+      raw: config -g config
+      register: output_opengear_config
+
+    - name: Save the backup information.
+      copy:
+        content: '{{ output_opengear_config.stdout_lines | to_nice_json }}'
+        dest: "{{ network_backup_dir }}/{{ net_backup_filename }}"
+      delegate_to: localhost
+
+    - name: Add SUCCESS line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/successful_hosts.txt
+        line: "{{ inventory_hostname }}"
+      when: output_opengear_config
+      delegate_to: localhost
+      throttle: 1
+
+  rescue:
+    - name: Add ERROR line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/failed_hosts.txt
+        line: "{{ inventory_hostname }}"
+      delegate_to: localhost
+      throttle: 1
 ```
 #### Arista EOS
+
+[Arista Devices](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/generate-backups/tasks/eos-backup-config.yml) use the **arista.eos.eos_config** library over httpapi port 443
+
 ```yaml
+---
+- name: ARISTA EOS
+  block:
+    - name: grab and download ARISTA config
+      vars:
+        ansible_httpapi_port: 443
+        ansible_httpapi_validate_certs: False
+        ansible_httpapi_use_ssl: True
+        ansible_become: True
+        ansible_user: username
+        ansible_password: pwd
+      arista.eos.eos_config:
+        backup: yes
+        backup_options:
+           filename: "{{ net_backup_filename }}"
+           dir_path: "{{ network_backup_dir }}"
+      register: arista_backupinfo
+
+    - name: Add SUCCESS line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/successful_hosts.txt
+        line: "{{ inventory_hostname }}"
+      when: arista_backupinfo is defined
+      delegate_to: localhost
+      throttle: 1
+
+  rescue:
+    - name: Add ERROR line to file
+      ansible.builtin.lineinfile:
+        path: /root/configuration-backup-manager/templates/failed_hosts.txt
+        line: "{{ inventory_hostname }}"
+      delegate_to: localhost
+      throttle: 1
 ```
-
-### The Netbox Dynamic Inventory
-
 ### Syncing to S3
+After all the backup files are saved in a local directory. We can [sync the entire directory](https://github.com/kaon1/configuration-backup-manager/blob/main/roles/sync-to-s3/tasks/main.yml) to an S3 bucket.
+The S3 bucket has versioning enbaled, so we can keep track of changes over a period of time.
+
+```yaml
+---
+- name:
+  block:
+    - name: Sync to S3
+      community.aws.s3_sync:
+        bucket: <bucket_name>
+        key_prefix: config-backups
+        file_root: /root/configuration-backup-manager/config-backups/
+      register: result_s3
+
+    - name: Add status to s3 state file
+      ansible.builtin.lineinfile:
+        path: templates/failed_s3.txt
+        line: "S3 SYNC SUCCESSFUL"
+      when: result_s3 is defined
+
+  rescue:
+    - name: Add error state to file
+      ansible.builtin.lineinfile:
+        path: templates/failed_s3.txt
+        line: "ERROR S3 SYNC FAILED"
+```
+#### Example of a backed up versioned config
+
+![](s3-summary.png)
 
 ### Notifications and Health Checking
 
+#### Jinja2 Email Template
+[Jinja2 Template](https://github.com/kaon1/configuration-backup-manager/blob/main/templates/backup_state.j2)
+```jinja
+Ansible Configuration Backup Manager
+
+Date: "{{ lookup('pipe','date') }}"
+
+Errored Backups: {{ failed_data | length }}
+
+Successful Backups: {{ success_data | length }}
+
+Total Devices Tagged for Backup: {{ total_data }}
+
+S3 Sync Status: {{ s3_error }}
+___________________________________________________________________________
+Location of All Backups can be found on AWS S3:
+s3://<bucket-name>/config-backups/
+
+List of Devices Tagged for Nightly Backup:
+https://<netbox-url>/dcim/devices/?tag=ncm_backup
+
+Execution Server Location:
+ssh://<server>
+Directory: /root/configuration-backup-manager/ncm-engine.yml
+
+GitHub Repo:
+https://github.com/<repo>
+
+PRTG Sensor Of Backup State:
+https://<url>/sensor.htm?id=...
+
+Documentation:
+https://<url>
+___________________________________________________________________________
+Failed Device Names:
+{# new line #}
+{{ failed_data | to_nice_yaml(indent=2) }}
+
+Successful Device Names:
+{# new line #}
+{{ success_data | to_nice_yaml(indent=2) }}
+```
+
+#### Creating a Status Page
+
+We can use a python script to tell us if the backup process has worked as expected.
+
+1. Check if the latest report is more than 24 hours old
+2. Check if error count is > 0
+3. Check if successfull hosts + errored hosts matches total hosts
+
+If any of the above conditions fail, update a local web-hosted server file to be **FALSE**
+
+Our Network Monitoring System can poll this file and alert us if its in a **FAILED** state
+
+[Here's the code](https://github.com/kaon1/configuration-backup-manager/blob/main/backup_status_prtg.py):
+
+```python
+import os
+import datetime as dt
+import re
+
+backup_state_file_path = '/root/configuration-backup-manager/backup_state.txt'
+
+
+def is_file_current(filename):
+    try:
+        today = dt.datetime.now().date()
+        filetime = dt.datetime.fromtimestamp(os.path.getmtime(filename))
+        if filetime.date() == today:
+            return True
+        else:
+            return False
+
+    except Exception as e:
+        return False
+
+
+def is_no_errors_count(filename):
+    try:
+        pattern = re.compile("Errored Backups: (\\d)")
+        for line in open(filename):
+            for match in re.finditer(pattern, line):
+                if match.group(1) == '0':
+                    return True
+                else:
+                    return False
+        return False
+
+    except Exception as e:
+        return False
+
+def is_no_s3_errors(filename):
+    try:
+        pattern = re.compile("(S3 SYNC SUCCESSFUL)")
+        for line in open(filename):
+            for match in re.finditer(pattern, line):
+                if match.group(1) == 'S3 SYNC SUCCESSFUL':
+                    return True
+                else:
+                    return False
+        return False
+
+    except Exception as e:
+        return False
+
+def is_total_match(filename):
+    try:
+        pattern1 = re.compile("Errored Backups: (\\d)")
+        for line in open(filename):
+            for match in re.finditer(pattern1, line):
+                total_errors = match.group(1)
+
+        pattern2 = re.compile("Successful Backups: (\\d)")
+        for line in open(filename):
+            for match in re.finditer(pattern2, line):
+                total_success = match.group(1)
+
+        pattern3 = re.compile("Total Devices Tagged for Backup: (\\d)")
+        for line in open(filename):
+            for match in re.finditer(pattern3, line):
+                total_hosts = match.group(1)
+
+        if int(total_errors) + int(total_hosts) == int(total_success):
+            return True
+        else:
+            return False
+
+    except Exception as e:
+        return False
+
+def main():
+    backup_status = is_file_current(backup_state_file_path) and is_no_errors_count(backup_state_file_path) and is_no_s3_errors(backup_state_file_path) and is_total_match(backup_state_file_path)
+
+    if os.path.exists("/usr/share/nginx/html/backup_status.txt"):
+        os.remove("/usr/share/nginx/html/backup_status.txt")
+
+    f = open("/usr/share/nginx/html/backup_status.txt", "a")
+    f.write(str(backup_status))
+    f.close()
+
+
+if __name__ == "__main__":
+    main()
+```
+#### Scheduling
+
+Daily schedules can be setup with a crontab job. The first task runs the ansible playbook and the 2nd task (1 hour later) runs the python code status check.
+
+```sh
+[root@ncmncm]# crontab -l
+MAILTO="kaon"
+0 7 * * * /usr/local/bin/ansible-playbook -i /root/ncm/netbox_inventory.yml -e "var_hosts=all" /root/ncm/ncm-engine.yml
+0 8 * * * /usr/bin/python3 /root/ncm/backup_status_nms.py
+```
+
 ## Final Thoughts
+
+The system may seem complex, but hopefully I have broken it down into enough small chunks to be understandable. Feel free to contact me on [Twitter](https://twitter.com/Kaon_123) with any questions. Thanks for reading.  
