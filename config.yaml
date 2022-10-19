@@ -58,7 +58,7 @@ params:
         avatar:
             enabled: true
             local: true
-            src: img/twitter-profile.jpg
+            src: img/smaller-profile-pic.png
 
     article:
         math: false
