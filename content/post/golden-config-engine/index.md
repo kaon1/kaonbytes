@@ -675,6 +675,6 @@ If running directly from ansible CLI yu can use [callback plugins](https://docs.
 ## Final Thoughts
 
 Standardizing configurations across a distributed network is an essential pillar of Network Automation. I hope this guide is helpful to anyone looking for a similar solution. 
-My solution can be improved upoin by adding more vendors to the mix (Cisco, Arista, etc) and adding additional config blocks such as BGP, Interface configurations, Prefix Maps etc....but that's another post :)
+My solution can be improved upon by adding more vendors to the mix (Cisco, Arista, etc) and adding additional config blocks such as BGP, Interface configurations, Prefix Maps etc....but that's another post :)
 
 If you have any questions or need clarifications feel free to leave a comment below or contact me. Thanks for reading!
