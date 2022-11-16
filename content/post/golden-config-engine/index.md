@@ -1,7 +1,7 @@
 +++
 author = "Kaon Thana"
 title = "Golden Configuration Deployment with Ansible and Netbox"
-date = "2022-11-01"
+date = "2022-11-15"
 description = "Enforce intended network state using ansible and a rendered golden configuration template"
 categories = [
     "ansible",
