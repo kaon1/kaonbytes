@@ -1,4 +1,695 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>automation on KaonBytes</title><link>https://kaonbytes.com/categories/automation/</link><description>Recent content in automation on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 13 May 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/automation/index.xml" rel="self" type="application/rss+xml"/><item><title>Netbox Dynamic Inventory for Ansible as a feedback loop</title><link>https://kaonbytes.com/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/</link><pubDate>Fri, 13 May 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/</guid><description>&lt;img src="https://kaonbytes.com/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/netbox-ansible-feedback.png" alt="Featured image of post Netbox Dynamic Inventory for Ansible as a feedback loop" />&lt;p>&lt;strong>The most important pillar&lt;/strong> of Network Automation is a &lt;strong>Source of Truth&lt;/strong> (SoT)&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>automation on KaonBytes</title><link>https://kaonbytes.com/categories/automation/</link><description>Recent content in automation on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 01 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/automation/index.xml" rel="self" type="application/rss+xml"/><item><title>Golden Configuration Deployment with Ansible and Netbox</title><link>https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/</link><pubDate>Tue, 01 Nov 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/</guid><description>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/golden-config-front.png" alt="Featured image of post Golden Configuration Deployment with Ansible and Netbox" />&lt;p>&lt;strong>The first step in creating a self-healing network&lt;/strong> is to implement a golden configuration standard. Ensuring that your network devices are in compliance with intended parameters improves operational overhead, limits security risks and potential outages caused by human error.&lt;/p>
+&lt;p>However, this is a &lt;strong>complex&lt;/strong> problem to solve because a universal one-size-fits-all configuration is not common. Many factors cause slight changes in configurations such as:&lt;/p>
+&lt;ul>
+&lt;li>device hardware&lt;/li>
+&lt;li>firmware&lt;/li>
+&lt;li>region specific parameters&lt;/li>
+&lt;li>non-idempotent secret keys&lt;/li>
+&lt;/ul>
+&lt;p>&amp;hellip; just to name a few. So how can we do it?&lt;/p>
+&lt;h2 id="purpose">Purpose&lt;/h2>
+&lt;p>In this blog post, I will share a technical architecture that I have deployed in &lt;strong>production&lt;/strong> on hundreds of network nodes accross dozens of sites and global regions.&lt;/p>
+&lt;h3 id="the-steps">The Steps&lt;/h3>
+&lt;ol>
+&lt;li>Populate &lt;strong>Source of Truth (Netbox)&lt;/strong> with desired configuration context to be loaded as dynamic inventory host variables
+&lt;ul>
+&lt;li>Use weighted config context to populate region or site wide specific configuration&lt;/li>
+&lt;li>Use custom fields to populate device specific configuration (if needed)&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Populate &lt;strong>Secret Passwords&lt;/strong> in Ansible Automation Platform Credentials library, Ansible Vault, HashiCorp Vault or some other secure method to be called later&lt;/li>
+&lt;li>Build custom python module to &lt;strong>create idempotent secret keys&lt;/strong> per host.
+&lt;ul>
+&lt;li>Securely encrypted keys which can be re-produced on each host (i.e not change on every run)&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Render intended confgiurations with Ansible &lt;strong>Jinja2 Templating&lt;/strong>&lt;/li>
+&lt;li>&lt;strong>Deploy&lt;/strong> desired configuration with Ansible
+&lt;ul>
+&lt;li>In this case, we are deploying on Juniper Devices using the junos_config module with the &lt;strong>replace&lt;/strong> argument&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Use the junos_config option &lt;strong>commit_check&lt;/strong> to perform Compliance Checking. i.e. Dry Run of changes to be made&lt;/li>
+&lt;/ol>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/golden-config-flow.png"
+width="7043"
+height="9961"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/golden-config-flow_hu8c00e4bf5d0b8d2a458616fc1feb32a2_2730810_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/golden-config-flow_hu8c00e4bf5d0b8d2a458616fc1feb32a2_2730810_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="70"
+data-flex-basis="169px"
+>&lt;/p>
+&lt;h2 id="the-end-result">The End Result&lt;/h2>
+&lt;h3 id="the-code">The Code&lt;/h3>
+&lt;p>Github Repo can be found here - &lt;a class="link" href="https://github.com/kaon1/golden-config-engine" target="_blank" rel="noopener"
+>Golden Config Compliance Engine&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://github.com/kaon1/golden-config-engine/blob/main/junos-golden-config-template.j2" target="_blank" rel="noopener"
+>The Juniper Configuration Template&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://github.com/kaon1/golden-config-engine/blob/main/junos-golden-config-engine.yml" target="_blank" rel="noopener"
+>The Ansible Playbook&lt;/a>&lt;/p>
+&lt;h3 id="running-the-playbook">Running the playbook&lt;/h3>
+&lt;p>Example of &lt;strong>out-of-compliance&lt;/strong> run:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="o">(&lt;/span>py38env_ansible&lt;span class="o">)&lt;/span> &lt;span class="o">[&lt;/span>root@net config-templates&lt;span class="o">]&lt;/span>&lt;span class="c1"># ansible-playbook -i netbox_inventory.yml --e &amp;#34;@extra-vars.yml&amp;#34; --diff junos-golden-config-engine.yml -u kaon -k&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">SSH password:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PLAY &lt;span class="o">[&lt;/span>Standardize System Params on Junos Config&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Lookup Timezone Info by Device Site&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01 -&amp;gt; localhost&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Set Time Zone Fact to be used in jinja2 template&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Grab switch software fw version from Netbox and &lt;span class="nb">set&lt;/span> as integer Value&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>get snmp info&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>parse snmp engine id&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>generate snmp_9key&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>generate tacacs_key&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>generate root login key per device&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Template Lookup and Config Generation&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01 -&amp;gt; localhost&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Load Standard System Parameters to Juniper Device&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>edit system login&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- user bob-super-admin &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- uid 2006&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- class super-user&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- authentication &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- encrypted-password &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$6$Hyk9Ve&lt;/span>&lt;span class="s2">....&amp;#34;&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">## SECRET-DATA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- &lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- &lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>edit system services ssh&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- root-login allow&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ root-login deny&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>edit system&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ processes &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ web-management disable&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ &lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">changed: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>debug&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">fatal: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>: FAILED! &lt;span class="o">=&lt;/span>&amp;gt; &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;msg&amp;#34;&lt;/span>: &lt;span class="s2">&amp;#34;Change detected, action needed&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PLAY RECAP ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TEST01 : &lt;span class="nv">ok&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">10&lt;/span> &lt;span class="nv">changed&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">1&lt;/span> &lt;span class="nv">unreachable&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">0&lt;/span> &lt;span class="nv">failed&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">1&lt;/span> &lt;span class="nv">skipped&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">1&lt;/span> &lt;span class="nv">rescued&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">0&lt;/span> &lt;span class="nv">ignored&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">0&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Example of &lt;strong>in-compliance&lt;/strong> run:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="o">(&lt;/span>py38env_ansible&lt;span class="o">)&lt;/span> &lt;span class="o">[&lt;/span>root@net config-templates&lt;span class="o">]&lt;/span>&lt;span class="c1"># ansible-playbook -i netbox_inventory.yml --e &amp;#34;@extra-vars.yml&amp;#34; --diff junos-golden-config-engine.yml -u kaon -k&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">SSH password:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PLAY &lt;span class="o">[&lt;/span>Standardize System Params on Junos Config&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Lookup Timezone Info by Device Site&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01 -&amp;gt; localhost&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Set Time Zone Fact to be used in jinja2 template&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Grab switch software fw version from Netbox and &lt;span class="nb">set&lt;/span> as integer Value&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>get snmp info&lt;span class="o">]&lt;/span> ****
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>parse snmp engine id&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>generate snmp_9key&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>generate tacacs_key&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>generate root login key per device&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Template Lookup and Config Generation&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01 -&amp;gt; localhost&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TASK &lt;span class="o">[&lt;/span>Load Standard System Parameters to Juniper Device&lt;span class="o">]&lt;/span> ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ok: &lt;span class="o">[&lt;/span>TEST01&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PLAY RECAP ***
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">TTEST01 : &lt;span class="nv">ok&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">10&lt;/span> &lt;span class="nv">changed&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">0&lt;/span> &lt;span class="nv">unreachable&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">0&lt;/span> &lt;span class="nv">failed&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">0&lt;/span> &lt;span class="nv">skipped&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">2&lt;/span> &lt;span class="nv">rescued&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">0&lt;/span> &lt;span class="nv">ignored&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">(&lt;/span>py38env_ansible&lt;span class="o">)&lt;/span> &lt;span class="o">[&lt;/span>root@server config-templates&lt;span class="o">]&lt;/span>&lt;span class="c1"># &lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="the-nuts-and-bolts-how-to">The Nuts and Bolts How-To&lt;/h2>
+&lt;h3 id="declaring-intended-state">Declaring Intended State&lt;/h3>
+&lt;p>In order to build a golden configuration we have to start &lt;em>somewhere&lt;/em>. In this tutorial we are using &lt;strong>Juniper Junos&lt;/strong> devices.
+Junos devices facilitate automation because:&lt;/p>
+&lt;ul>
+&lt;li>They offer the ability to load all or parts of configuration as &lt;strong>hierarchical text&lt;/strong>.&lt;/li>
+&lt;li>Allows for &lt;strong>replace functionality&lt;/strong> in which the operating system determines configuration differences and inserts/deletes lines as needed&lt;/li>
+&lt;li>Has the ability to &lt;strong>check commit&lt;/strong> which performs a dry run load of the intended configuration without making the change&lt;/li>
+&lt;/ul>
+&lt;p>A simple Junos Configuration .txt file could look something like this:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">replace:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">system &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> host-name &amp;lt;some_name&amp;gt;&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> services &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ssh &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;some_more config&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> time-zone &amp;lt;some_tz&amp;gt;&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> name-server &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;some_ns1&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;some_ns2&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;some_ns3&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> syslog &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;some_more config&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ntp &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;some_server1&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;some_server2&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> login &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;some_user_config&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">replace:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">snmp &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> description &amp;lt;some_description&amp;gt;&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> location &amp;lt;some_location&amp;gt;&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> contact &amp;lt;some_email&amp;gt;&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> v3 &lt;span class="o">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;lt;some_more config&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&amp;lt;some_more config&amp;gt;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If we manually populate all the above values with correct Junos syntax and load it via the CLI then the OS will replace the &lt;strong>system&lt;/strong> section and &lt;strong>snmp&lt;/strong> section with the declared .txt file.&lt;/p>
+&lt;p>But how can we turn the above snippet into a golden config to apply across multiple devices?&lt;/p>
+&lt;h3 id="source-of-truth---netbox">Source Of Truth - Netbox&lt;/h3>
+&lt;p>First we need to model our devices into a centralized location. &lt;a class="link" href="https://github.com/netbox-community/netbox" target="_blank" rel="noopener"
+>Netbox&lt;/a> is a good tool to use for this, but other products also exist such as Nautobot, Solarwinds, InfoBlox etc&lt;/p>
+&lt;p>In a &lt;a class="link" href="http://localhost:1313/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/" target="_blank" rel="noopener"
+>previous blog post&lt;/a> I discussed how we can use Netbox as our dynamic Ansible inventory. When we populate our Ansible Inventory from Netbox, we can also pull in important &lt;strong>host variables&lt;/strong>. These variables can be used to populate our Juniper System Configuration text file.&lt;/p>
+&lt;p>Example of Ansible hostvars from Netbox inventory:&lt;/p>
+&lt;p>&lt;code># ansible-inventory -i ../netbox/netbox_inventory.yml --host TEST01&lt;/code>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;ansible_connection&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;netconf&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;ansible_host&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;10.X.X.X&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;ansible_network_os&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;junos&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;custom_fields&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;ansible_connection&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;netconf&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;code_version&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;20&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;device_roles&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;access_switch&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;device_site&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;device_types&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;ex4300-48p&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;is_virtual&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="kc">false&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;local_context_data&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kc">null&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;locations&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;manufacturers&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;juniper&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;platforms&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;junos&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;primary_ip4&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;10.x.x.x&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;regions&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;americas&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;services&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;sites&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;xxx&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;status&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;label&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Active&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;value&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;active&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;tags&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;3&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;2&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;1&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="config-context">Config Context&lt;/h3>
+&lt;p>In addition to device specific variables, we can render large blocks of configuration with the &lt;a class="link" href="https://docs.netbox.dev/en/stable/features/context-data/" target="_blank" rel="noopener"
+>Context Data&lt;/a> feature of Netbox.
+Context data can be applied to a class of devices on different conditions such as site, region, role, etc&lt;/p>
+&lt;ul>
+&lt;li>For example, all switches in Europe should use an EU set of NTP servers&lt;/li>
+&lt;/ul>
+&lt;p>Weighting can be used to apply multiple layers of context data.&lt;/p>
+&lt;ul>
+&lt;li>For example, all devices should use DNS server 10.10.10.10 (default weight of 1000)&lt;/li>
+&lt;li>However, devices in SITE A should use DNS server 11.11.11.11 (set weight 2000)&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Example Config Context Declaration:&lt;/strong>&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/nb-config-context5.png"
+width="1881"
+height="953"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/nb-config-context5_hu4e1bbcd0cbd1c7dd0bfd68eb460664dc_100926_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/nb-config-context5_hu4e1bbcd0cbd1c7dd0bfd68eb460664dc_100926_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="197"
+data-flex-basis="473px"
+>&lt;/p>
+&lt;p>&lt;strong>Example of Rendered Content Per Device:&lt;/strong>&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/nb-config-context6.png"
+width="1576"
+height="910"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/nb-config-context6_hu15abef954ed4b204f3b3cdcbad3b5d1a_60957_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/nb-config-context6_hu15abef954ed4b204f3b3cdcbad3b5d1a_60957_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="173"
+data-flex-basis="415px"
+>&lt;/p>
+&lt;p>In the above screenshot, we have populated the following parameters for this individual device:&lt;/p>
+&lt;ul>
+&lt;li>Domain Name&lt;/li>
+&lt;li>Name Servers&lt;/li>
+&lt;li>NTP Servers&lt;/li>
+&lt;li>TACACS Servers&lt;/li>
+&lt;/ul>
+&lt;p>The rendered config can now be sent to the Ansible Inventory as variable called &lt;code>hostvars[inventory_hostname]['config_context']&lt;/code>&lt;/p>
+&lt;h3 id="handling-credentials-and-secret-passwords">Handling Credentials And Secret Passwords&lt;/h3>
+&lt;p>Do &lt;strong>not&lt;/strong> commit secret keys to github :)&lt;/p>
+&lt;p>Instead, let&amp;rsquo;s inject our passwords as credentials in &lt;a class="link" href="https://docs.ansible.com/automation-controller/4.0.0/html/userguide/credentials.html" target="_blank" rel="noopener"
+>Ansible Automation Platform&lt;/a> and call them as variables during runtime execution. As an alternative, we can also do this with &lt;a class="link" href="https://www.vaultproject.io/" target="_blank" rel="noopener"
+>Hashicorp Vault&lt;/a> using the hashi_vault lookup module.&lt;/p>
+&lt;p>&lt;strong>Example Passwords to Store:&lt;/strong>&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/aap1.png"
+width="1428"
+height="779"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/aap1_hue70311129c583ca328e5f1fa7f6218e2_67502_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/aap1_hue70311129c583ca328e5f1fa7f6218e2_67502_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="183"
+data-flex-basis="439px"
+>&lt;/p>
+&lt;p>&lt;strong>Example of injecting passwords into your playbook build:&lt;/strong>&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/aap2.png"
+width="1680"
+height="976"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/aap2_huf7cc1edf93601f2adcb5160754a40b21_83572_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/aap2_huf7cc1edf93601f2adcb5160754a40b21_83572_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="172"
+data-flex-basis="413px"
+>&lt;/p>
+&lt;p>Passwords can be called as variables inside your playbook. The variable name is determined by the credential_type that was created earlier. For example, the snmp credential type passes a variable called &lt;code>snmp_cred&lt;/code> which can be referenced as such:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">vars&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># lookup secrets from ansible credentials&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">tacacs_pw&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ tacacs_pw }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">root_pw&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ root_pw }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">snmp_cred&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ snmp_cred }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">ssh_key&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ ssh_key }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">tasks&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="creating-idempotent-secret-keys-from-passwords">Creating Idempotent Secret Keys from Passwords&lt;/h4>
+&lt;p>We &lt;em>could&lt;/em> load these secrets directly into our Jinja2 template. Junos would accept the rendered configuration and internally convert the passwords to encrypted keys in its running configuration. However, if we did this, then each subsequent run would register a &lt;strong>change&lt;/strong> (i.e. not idempotent)&lt;/p>
+&lt;p>Here&amp;rsquo;s how we can solve this problem:&lt;/p>
+&lt;p>&lt;strong>The $9$ Key&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Juniper uses &lt;strong>$9$ encoded keys&lt;/strong> (similar to cisco type 7) for shared secrets which run on services such as BGP, TACACS and SNMP. The user inputs a plain text password and the OS obfuscates it, when needed the OS is able to decrypt the key.&lt;/li>
+&lt;li>Simple, lets find a python library that encodes the $9$ algorithm, input our snmpv3 plaintext password and call it a day. WRONG :( unfortunately, the OS accepts the key but snmpv3 authentication breaks:&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key1.jfif"
+width="2048"
+height="818"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key1_huf954a054afc492fa289e92c5fb7d03c7_96711_480x0_resize_q75_box.jfif 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key1_huf954a054afc492fa289e92c5fb7d03c7_96711_1024x0_resize_q75_box.jfif 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="250"
+data-flex-basis="600px"
+>&lt;/p>
+&lt;ul>
+&lt;li>RFC3414 describes how snmpv3 creates a localized unique key per device. We need to hash the local engine ID + password + other. The below C code is provided as an example in the RFC. Luckily there&amp;rsquo;s a python library for that&amp;hellip;&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key2.jfif"
+width="1514"
+height="2308"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key2_huea75e9bd78ebded03bcac91be35847d5_258473_480x0_resize_q75_box.jfif 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key2_huea75e9bd78ebded03bcac91be35847d5_258473_1024x0_resize_q75_box.jfif 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="65"
+data-flex-basis="157px"
+>&lt;/p>
+&lt;ul>
+&lt;li>The snmpv3_hashgen library takes the input of your plain text pw + your engineID and outputs a key. Great, lets take this key and put it in our $9$ function. so localized key &amp;ndash;&amp;gt; $9$ function = $9$&amp;hellip;key to be used for junos config.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key3.jfif"
+width="1902"
+height="1080"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key3_hu6485f23e60e2e8e9568294bae27898e8_98790_480x0_resize_q75_box.jfif 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key3_hu6485f23e60e2e8e9568294bae27898e8_98790_1024x0_resize_q75_box.jfif 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="176"
+data-flex-basis="422px"
+>&lt;/p>
+&lt;ul>
+&lt;li>The $9$ key is compatible and works in junos snmpv3 config block. However there&amp;rsquo;s still a problem, the key is different every time it&amp;rsquo;s generated. This breaks repeatability. We can fix this by setting a static salt in the $9$ generator function.&lt;/li>
+&lt;li>In this case, a static salt does not make us less secure because each $9$ key is already unique per device (because each localized snmp key is unique due to the engineID being different). Now we have a working process. Lets put all this into a python filter and implement it.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key4.jfif"
+width="2048"
+height="818"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key4_huf954a054afc492fa289e92c5fb7d03c7_89622_480x0_resize_q75_box.jfif 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key4_huf954a054afc492fa289e92c5fb7d03c7_89622_1024x0_resize_q75_box.jfif 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="250"
+data-flex-basis="600px"
+>&lt;/p>
+&lt;ul>
+&lt;li>Custom python filter to be imported in the ansible playbook can be &lt;a class="link" href="https://github.com/kaon1/golden-config-engine/blob/main/filter_plugins/filter.py" target="_blank" rel="noopener"
+>found here&lt;/a>. Snippet of the function:&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl"> &lt;span class="k">def&lt;/span> &lt;span class="nf">gen_snmp_9key&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">engine_id&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">snmp_pass&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;&amp;#34;&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s2"> Takes two inputs (engine_id and snmp password).
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s2"> Hashes the password and engine id together to create a localized key.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s2"> Then encodes the key with the juniper $9$ algorithm to be used in junos configuration
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s2"> &amp;#34;&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">hash&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">Hashgen&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">algs&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;sha1&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Kul_auth&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">Hashgen&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">derive_msg&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">snmp_pass&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">engine_id&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">hash&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Kul_priv&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">Hashgen&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">derive_msg&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">snmp_pass&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">engine_id&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">hash&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">localized_key&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">hash&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Kul_auth&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">snmp_9key&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">encrypt&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">localized_key&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">snmp_9key&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>Results: first run to standardize the config. Registers a change (as expected):&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key5.png"
+width="2127"
+height="1090"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key5_hu7142a5aa952953789ba5933ad6cf2b21_83145_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key5_hu7142a5aa952953789ba5933ad6cf2b21_83145_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="195"
+data-flex-basis="468px"
+>&lt;/p>
+&lt;ul>
+&lt;li>Subsequent runs. No change. But confirms we are in compliance and standardization:&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key6.png"
+width="2131"
+height="1093"
+srcset="https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key6_hu57bf9b69438fc451ff661cda34512780_63513_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/golden-configuration-deployment-with-ansible-and-netbox/9key6_hu57bf9b69438fc451ff661cda34512780_63513_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="194"
+data-flex-basis="467px"
+>&lt;/p>
+&lt;p>&lt;strong>Other $9$ Keys (Not SNMP)&lt;/strong>&lt;/p>
+&lt;p>For other System $9$ keys (such as TACACS, RADIUS, etc). We can use the &lt;strong>device hostname&lt;/strong> as our salt. Using the device hostname means we always generate a repeatable $9$ key per device but not the same key accross all devices.&lt;/p>
+&lt;p>In the same python filter, we have some modified functions here which take two inputs&lt;/p>
+&lt;ol>
+&lt;li>Device Hostname&lt;/li>
+&lt;li>Password&lt;/li>
+&lt;/ol>
+&lt;p>and spit out an encrypted unique but repeatable $9$ key:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## Create a unique but repeatable decimal number based on string (i.e. hostname)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## Set range of decimal with modulo (i.e to get a number between 0 to 64 set modulo 65)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## Example: input hostname &amp;#39;switch-123&amp;#39; output: 56&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">get_unique_decimal_from_string&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">str_to_hash&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">modulo&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">str_to_hash_hex&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">md5&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">str_to_hash&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">encode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;utf&amp;#34;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">hexdigest&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">str_to_hash_dec&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">int&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">str_to_hash_hex&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">16&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">str_to_hash_dec&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="n">modulo&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## Create a unique, &amp;#39;random&amp;#39;, single character salt value from the string hostname. Repeatable.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## Example: input hostname &amp;#39;switch-123&amp;#39; output: &amp;#39;V&amp;#39; (this is a character from the FAMILY structure above)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">get_deterministic_salt_from_hostname&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">hostname&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># returns a number from 0-64&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">str_to_hash_dec&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">get_unique_decimal_from_string&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">hostname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">65&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># calls index of list NUM_ALPHA[0-64] and returns 1 character&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">NUM_ALPHA&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">str_to_hash_dec&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## Create a unique, &amp;#39;random&amp;#39;, 0-3 character bookend-salt value from the string hostname. Repeatable.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## Example: input hostname &amp;#39;switch-123&amp;#39; and salt &amp;#39;V&amp;#39; Output &amp;#39;9wY&amp;#39;. &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## The length of the output is determined by the index of the salt in the EXTRA dictionary (i.e. EXTRA[salt])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">get_deterministic_bookend_from_hostname&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">hostname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">salt&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">end_piece&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">count&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">EXTRA&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">salt&lt;/span>&lt;span class="p">]):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">bookend_letter_dec&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">get_unique_decimal_from_string&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">hostname&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="mi">65&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">end_piece&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="n">NUM_ALPHA&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">bookend_letter_dec&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">end_piece&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">encrypt_with_hostname&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">value&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">hostname&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">salt&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">get_deterministic_salt_from_hostname&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">hostname&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">rand&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">get_deterministic_bookend_from_hostname&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">hostname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">salt&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">position&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">previous&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">salt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">crypted&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">MAGIC&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">salt&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">rand&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">x&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">value&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">encode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">ENCODING&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">position&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ENCODING&lt;/span>&lt;span class="p">)]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">crypted&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="n">__gap_encode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">previous&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">encode&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">previous&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">crypted&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">position&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">crypted&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>$1$ - $5$ and $6$ Keys&lt;/strong>&lt;/p>
+&lt;p>These keys are MUCH simpler to implement. 1,5,6 keys use standard hashing algorithms.&lt;/p>
+&lt;ul>
+&lt;li>Legacy JUNOS devices use $1$ keys (Hash Algo md5)&lt;/li>
+&lt;li>Modern JUNOS devices use $5$ keys (sha256) or $6$ (sha512)&lt;/li>
+&lt;/ul>
+&lt;p>We can use the built in ansible module &lt;strong>password_hash&lt;/strong> to generate these keys. However, to create an idempotent key, we need to use the device hostname as the random seed. Example below:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">generate root login key per device&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">set_fact&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">root_key&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ root_pw | password_hash(hash_algo, 65534 | random(seed=inventory_hostname) | string) }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The root password is encrypted with the sha512 algorithm + device hostname as the random seed. The resulting string is a unique but repeatable $6$ key per device.&lt;/p>
+&lt;h3 id="jinja2-template">Jinja2 Template&lt;/h3>
+&lt;p>After all that work, we have our base config, variables and secret keys ready. We can mash them all together in a jinja2 template. &lt;a class="link" href="https://github.com/kaon1/golden-config-engine/blob/main/junos-golden-config-template.j2" target="_blank" rel="noopener"
+>Here is the template&lt;/a>:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="err">replace:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">system&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">root-authentication&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">encrypted-password&lt;/span> &lt;span class="nt">&amp;#34;{{ root_key }}&amp;#34;&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="err">##&lt;/span> &lt;span class="err">SECRET-DATA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">authentication-order&lt;/span> &lt;span class="p">[&lt;/span> &lt;span class="err">password&lt;/span> &lt;span class="err">tacplus&lt;/span> &lt;span class="p">]&lt;/span>&lt;span class="err">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">host-name&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">inventory_hostname&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">services&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">ssh&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">root-login&lt;/span> &lt;span class="err">deny;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">protocol-version&lt;/span> &lt;span class="err">v2;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">max-sessions-per-connection&lt;/span> &lt;span class="err">32;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">{%&lt;/span> &lt;span class="err">if&lt;/span> &lt;span class="err">code_version|int&lt;/span> &lt;span class="err">&amp;gt;=&lt;/span> &lt;span class="err">19&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">sftp-server;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>&lt;span class="err">%&lt;/span> &lt;span class="err">endif&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">netconf&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">ssh;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">domain-name&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">hostvars[inventory_hostname][&amp;#39;config_context&amp;#39;][0][&amp;#39;domain-name&amp;#39;]&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">time-zone&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">timezone&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">name-server&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">{%&lt;/span> &lt;span class="err">for&lt;/span> &lt;span class="err">item&lt;/span> &lt;span class="err">in&lt;/span> &lt;span class="err">hostvars[inventory_hostname][&amp;#39;config_context&amp;#39;][0][&amp;#39;name-servers&amp;#39;]&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">item&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>&lt;span class="err">%&lt;/span> &lt;span class="err">endfor&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">syslog&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">user&lt;/span> &lt;span class="err">*&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">any&lt;/span> &lt;span class="err">emergency;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>&lt;span class="err">%&lt;/span> &lt;span class="err">for&lt;/span> &lt;span class="err">item&lt;/span> &lt;span class="err">in&lt;/span> &lt;span class="err">hostvars[inventory_hostname][&amp;#39;config_context&amp;#39;][0][&amp;#39;log-agg&amp;#39;]&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">host&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">item&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">}&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">any&lt;/span> &lt;span class="err">any;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>&lt;span class="err">%&lt;/span> &lt;span class="err">endfor&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">file&lt;/span> &lt;span class="err">messages&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">any&lt;/span> &lt;span class="err">warning;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">authorization&lt;/span> &lt;span class="err">info;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">source-address&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">ansible_host&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">ntp&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">server&lt;/span> &lt;span class="err">{{&lt;/span> &lt;span class="err">hostvars[inventory_hostname][&amp;#39;config_context&amp;#39;][0][&amp;#39;ntp-servers&amp;#39;][0]&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">}&lt;/span> &lt;span class="err">prefer;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>&lt;span class="err">%&lt;/span> &lt;span class="err">for&lt;/span> &lt;span class="err">item&lt;/span> &lt;span class="err">in&lt;/span> &lt;span class="err">hostvars[inventory_hostname][&amp;#39;config_context&amp;#39;][0][&amp;#39;ntp-servers&amp;#39;][1:]&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">server&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">item&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>&lt;span class="err">%&lt;/span> &lt;span class="err">endfor&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">source-address&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">ansible_host&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">login&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">user&lt;/span> &lt;span class="err">ansible&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">class&lt;/span> &lt;span class="err">super-user;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">authentication&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">ssh-rsa&lt;/span> &lt;span class="nt">&amp;#34;{{ ssh_pub_key }}&amp;#34;&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="err">##&lt;/span> &lt;span class="err">SECRET-DATA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">tacplus-server&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">{{&lt;/span> &lt;span class="err">hostvars[inventory_hostname][&amp;#39;config_context&amp;#39;][0][&amp;#39;tacplus-servers&amp;#39;][0]&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">}&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">port&lt;/span> &lt;span class="err">49;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">secret&lt;/span> &lt;span class="nt">&amp;#34;{{ tacacs_key }}&amp;#34;&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="err">##&lt;/span> &lt;span class="err">SECRET-DATA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">source-address&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">ansible_host&lt;/span> &lt;span class="p">}}&lt;/span>&lt;span class="err">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">hostvars[inventory_hostname][&amp;#39;config_context&amp;#39;][0][&amp;#39;tacplus-servers&amp;#39;][1]&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">}&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">port&lt;/span> &lt;span class="err">49;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">secret&lt;/span> &lt;span class="nt">&amp;#34;{{ tacacs_key }}&amp;#34;&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="err">##&lt;/span> &lt;span class="err">SECRET-DATA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">source-address&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">ansible_host&lt;/span> &lt;span class="p">}}&lt;/span>&lt;span class="err">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">accounting&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">events&lt;/span> &lt;span class="err">[&lt;/span> &lt;span class="err">login&lt;/span> &lt;span class="err">interactive-commands&lt;/span> &lt;span class="err">];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">destination&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">tacplus&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">server&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">{{&lt;/span> &lt;span class="err">hostvars[inventory_hostname][&amp;#39;config_context&amp;#39;][0][&amp;#39;tacplus-servers&amp;#39;][0]&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">}&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">port&lt;/span> &lt;span class="err">49;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">secret&lt;/span> &lt;span class="nt">&amp;#34;{{ tacacs_key }}&amp;#34;&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="err">##&lt;/span> &lt;span class="err">SECRET-DATA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">timeout&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="err">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">source-address&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">ansible_host&lt;/span> &lt;span class="p">}}&lt;/span>&lt;span class="err">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">hostvars[inventory_hostname][&amp;#39;config_context&amp;#39;][0][&amp;#39;tacplus-servers&amp;#39;][1]&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">}&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">port&lt;/span> &lt;span class="err">49;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">secret&lt;/span> &lt;span class="nt">&amp;#34;{{ tacacs_key }}&amp;#34;&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="err">##&lt;/span> &lt;span class="err">SECRET-DATA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">timeout&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="err">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">source-address&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">ansible_host&lt;/span> &lt;span class="p">}}&lt;/span>&lt;span class="err">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">replace:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">snmp&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">description&lt;/span> &lt;span class="err">{{&lt;/span> &lt;span class="err">inventory_hostname&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">location&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">{&lt;/span> &lt;span class="err">device_site&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="err">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">contact&lt;/span> &lt;span class="s2">&amp;#34;email@email.com&amp;#34;&lt;/span>&lt;span class="err">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">v&lt;/span>&lt;span class="mi">3&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">usm&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">local-engine&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">user&lt;/span> &lt;span class="err">usernameforsnmp&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">authentication-sha&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">authentication-key&lt;/span> &lt;span class="nt">&amp;#34;{{ snmp_9key }}&amp;#34;&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="err">##&lt;/span> &lt;span class="err">SECRET-DATA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">privacy-aes&lt;/span>&lt;span class="mi">128&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">privacy-key&lt;/span> &lt;span class="nt">&amp;#34;{{ snmp_9key }}&amp;#34;&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="err">##&lt;/span> &lt;span class="err">SECRET-DATA&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">vacm&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">security-to-group&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">security-model&lt;/span> &lt;span class="err">usm&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">security-name&lt;/span> &lt;span class="err">usernameforsnmp&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">group&lt;/span> &lt;span class="err">groupforsnmp;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">access&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">group&lt;/span> &lt;span class="err">groupforsnmp&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">default-context-prefix&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">security-model&lt;/span> &lt;span class="err">usm&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">security-level&lt;/span> &lt;span class="err">privacy&lt;/span> &lt;span class="err">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">read-view&lt;/span> &lt;span class="err">view-all;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">view&lt;/span> &lt;span class="err">view-all&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">oid&lt;/span> &lt;span class="err">1&lt;/span> &lt;span class="err">include;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Notice the python-style logic using &lt;strong>IF and FOR Loops&lt;/strong> above. We can use conditional logic to add/subtract configuration.&lt;/p>
+&lt;p>In the above example, if running Junos version 19 or greater add the &lt;strong>sftp line&lt;/strong>.
+For loops can also be used to implement multiple entries (like NTP servers).&lt;/p>
+&lt;p>&lt;strong>Generating Config from Template&lt;/strong>&lt;/p>
+&lt;p>The Ansible module &lt;strong>template&lt;/strong> can take the jinja2 text file and inject the variables to spit out a ready-to-go junos.conf file&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Template Lookup and Config Generation&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># generate template of system params. Variables are filled in by Netbox (from hostvars pulled to inventory)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">src&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ template_name }}.j2&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># create a temp candidate config file to be loaded in next task&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">dest&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ inventory_hostname }}.conf&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">delegate_to&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">localhost&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># this task will always generate a change, don&amp;#39;t need to see it.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">changed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>Loading configuration using Junos_Config module:&lt;/strong>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Load Standard System Parameters to Juniper Device&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">junipernetworks.junos.junos_config&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># if TRUE this will be a DRY RUN (no changes)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">check_commit&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ check_commit }}&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">src_format&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">text&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># we use the replace flag to overwrite specific blocks of config&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">update&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">replace&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># temp candidate config file created in previous task&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">src&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;{{ inventory_hostname }}.conf&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">register&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">result&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="juniper-commit_check-feature">Juniper Commit_Check Feature&lt;/h3>
+&lt;p>In the above ansible task, notice the flag &lt;code>check_commit&lt;/code>.&lt;/p>
+&lt;p>This is a junos-specific function that we can use to perform dry runs (when set to &lt;strong>TRUE&lt;/strong>). During execution, we can inject the check_commit variable (True or False) to decide if our playbook should be running in enforcing mode or compliance mode.&lt;/p>
+&lt;h3 id="first-run-and-recurring-enforcement">First Run and Recurring Enforcement&lt;/h3>
+&lt;p>A potential workflow could look like this:&lt;/p>
+&lt;ol>
+&lt;li>Standardize all configurations with the initial run of changes.&lt;/li>
+&lt;li>Subsequent playbook runs are scheduled regularly in &lt;code>check_commit&lt;/code> mode&lt;/li>
+&lt;li>If something has changed (either in the field or in the Source-of-truth) which does not match the standard then fail the playbook and send a notification.&lt;/li>
+&lt;li>Engineer manually assesses the situation and determines if the playbook should be run again in enforcing mode (revert the change) or update the source of truth.&lt;/li>
+&lt;/ol>
+&lt;p>We can use a &lt;em>hack&lt;/em> to fail the playbook and trigger a notification with this code:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c"># if running in compliance mode, error out when change is detected and action is needed to be taken. i.e alert on non-compliance&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">debug&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">msg&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;Change detected, action needed&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">result.changed&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">check_commit&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">failed_when&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">result.changed&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">check_commit&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>In AAP (or Ansible Tower), we can set &lt;a class="link" href="https://docs.ansible.com/ansible-tower/latest/html/userguide/notifications.html" target="_blank" rel="noopener"
+>notifications&lt;/a> on failed playbooks via email, slack or other methods.&lt;/p>
+&lt;p>If running directly from ansible CLI yu can use &lt;a class="link" href="https://docs.ansible.com/ansible/latest/collections/index_callback.html" target="_blank" rel="noopener"
+>callback plugins&lt;/a> to send notifications.&lt;/p>
+&lt;h2 id="final-thoughts">Final Thoughts&lt;/h2>
+&lt;p>Standardizing configurations across a distributed network is an essential pillar of Network Automation. I hope this guide is helpful to anyone looking for a similar solution.
+My solution can be improved upon by adding more vendors to the mix (Cisco, Arista, etc) and adding additional config blocks such as BGP, Interface configurations, Prefix Maps etc&amp;hellip;.but that&amp;rsquo;s another post :)&lt;/p>
+&lt;p>If you have any questions or need clarifications feel free to leave a comment below or contact me. Thanks for reading!&lt;/p></description></item><item><title>Netbox Dynamic Inventory for Ansible as a feedback loop</title><link>https://kaonbytes.com/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/</link><pubDate>Fri, 13 May 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/</guid><description>&lt;img src="https://kaonbytes.com/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/netbox-ansible-feedback.png" alt="Featured image of post Netbox Dynamic Inventory for Ansible as a feedback loop" />&lt;p>&lt;strong>The most important pillar&lt;/strong> of Network Automation is a &lt;strong>Source of Truth&lt;/strong> (SoT)&lt;/p>
 &lt;p>An accurate and well maintained SoT should provide:&lt;/p>
 &lt;ul>
 &lt;li>A list of device inventory (hosts)&lt;/li>
@@ -691,7 +1382,7 @@ data-flex-basis="703px"
 &lt;p>I hope this tutorial was useful to anyone looking to automate a common operational workflow. This playbook performs
 &lt;strong>read actions&lt;/strong>, its a good way to get started on your automation journey without worrying about making &lt;strong>breaking changes&lt;/strong>.&lt;/p>
 &lt;p>The next logical iteration for this process is to automatically update the firewall object without manual intervention.&lt;/p>
-&lt;p>Feel free to comment below or contact me on &lt;a class="link" href="https://twitter.com/Kaon_123" target="_blank" rel="noopener"
+&lt;p>Feel free to comment below or contact me on &lt;a class="link" href="https://twitter.com/KaonThana" target="_blank" rel="noopener"
 >Twitter&lt;/a> if you have any questions.&lt;/p>
 &lt;p>Thanks!&lt;/p></description></item><item><title>Automate Network Bandwidth Testing with Python and Iperf</title><link>https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/</link><pubDate>Thu, 14 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/</guid><description>&lt;img src="https://kaonbytes.com/p/automate-network-bandwidth-testing-with-python-and-iperf/python-iperf-datadog-mini2.png" alt="Featured image of post Automate Network Bandwidth Testing with Python and Iperf" />&lt;p>&lt;strong>The best way for a Network Engineer to grasp automation&lt;/strong> is to begin by coding a simple problem that they
 encounter. We often use &lt;a class="link" href="https://iperf.fr/" target="_blank" rel="noopener"

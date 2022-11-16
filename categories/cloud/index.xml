@@ -923,7 +923,7 @@ data-flex-basis="299px"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="m">0&lt;/span> &lt;span class="m">7&lt;/span> * * * /usr/local/bin/ansible-playbook -i /root/ncm/netbox_inventory.yml -e &lt;span class="s2">&amp;#34;var_hosts=all&amp;#34;&lt;/span> /root/ncm/ncm-engine.yml
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="m">0&lt;/span> &lt;span class="m">8&lt;/span> * * * /usr/bin/python3 /root/ncm/backup_status_nms.py
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="final-thoughts">Final Thoughts&lt;/h2>
-&lt;p>The system may seem complex, but hopefully I have broken it down into enough small chunks to be understandable. Feel free to contact me on &lt;a class="link" href="https://twitter.com/Kaon_123" target="_blank" rel="noopener"
+&lt;p>The system may seem complex, but hopefully I have broken it down into enough small chunks to be understandable. Feel free to contact me on &lt;a class="link" href="https://twitter.com/KaonThana" target="_blank" rel="noopener"
 >Twitter&lt;/a> with any questions. Thanks for reading.&lt;/p></description></item><item><title>BGPAlerter As Code Using A Terraform Pipeline</title><link>https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/</link><pubDate>Fri, 12 Aug 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/</guid><description>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/front.png" alt="Featured image of post BGPAlerter As Code Using A Terraform Pipeline" />&lt;p>&lt;strong>In this guide&lt;/strong> I will walk through how to deploy BGPAlerter as a service in Amazon (AWS) as an ECS/Fargate container using a Github, Terraform, Drone Pipeline&lt;/p>
 &lt;h2 id="what-is-bgpalerter">What is BGPAlerter?&lt;/h2>
 &lt;p>&lt;strong>&lt;a class="link" href="https://github.com/nttgin/BGPalerter" target="_blank" rel="noopener"
@@ -1697,6 +1697,6 @@ data-flex-basis="703px"
 &lt;p>I hope this tutorial was useful to anyone looking to automate a common operational workflow. This playbook performs
 &lt;strong>read actions&lt;/strong>, its a good way to get started on your automation journey without worrying about making &lt;strong>breaking changes&lt;/strong>.&lt;/p>
 &lt;p>The next logical iteration for this process is to automatically update the firewall object without manual intervention.&lt;/p>
-&lt;p>Feel free to comment below or contact me on &lt;a class="link" href="https://twitter.com/Kaon_123" target="_blank" rel="noopener"
+&lt;p>Feel free to comment below or contact me on &lt;a class="link" href="https://twitter.com/KaonThana" target="_blank" rel="noopener"
 >Twitter&lt;/a> if you have any questions.&lt;/p>
 &lt;p>Thanks!&lt;/p></description></item></channel></rss>
