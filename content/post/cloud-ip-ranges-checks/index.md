@@ -324,7 +324,7 @@ I hope this tutorial was useful to anyone looking to automate a common operation
 
 The next logical iteration for this process is to automatically update the firewall object without manual intervention.
 
-Feel free to comment below or contact me on [Twitter](https://twitter.com/Kaon_123) if you have any questions.
+Feel free to comment below or contact me on [Twitter](https://twitter.com/KaonThana) if you have any questions.
 
 Thanks!
 

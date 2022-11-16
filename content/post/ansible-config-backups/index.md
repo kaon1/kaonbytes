@@ -970,4 +970,4 @@ MAILTO="kaon"
 
 ## Final Thoughts
 
-The system may seem complex, but hopefully I have broken it down into enough small chunks to be understandable. Feel free to contact me on [Twitter](https://twitter.com/Kaon_123) with any questions. Thanks for reading.  
+The system may seem complex, but hopefully I have broken it down into enough small chunks to be understandable. Feel free to contact me on [Twitter](https://twitter.com/KaonThana) with any questions. Thanks for reading.  
