@@ -72,4 +72,4 @@ I also setup team sharing sessions to make sure everyone is included at any leve
 * As a parent of young toddlers its hard to have interests but I enjoy BBQ, Cycling and Baseball as hobbies.
 * I'm a homelab enthusiast with all the bells and whistles setup in my basement. 
 * I enjoy keeping up with tech. I follow the usual network engineering community on twitter. 
-Feel free to [contact me](https://twitter.com/Kaon_123)
+Feel free to [contact me](https://twitter.com/KaonThana)
