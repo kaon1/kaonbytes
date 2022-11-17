@@ -8,7 +8,7 @@
 &lt;/ul>
 &lt;p>&amp;hellip; just to name a few. So how can we do it?&lt;/p>
 &lt;h2 id="purpose">Purpose&lt;/h2>
-&lt;p>In this blog post, I will share a technical architecture that I have deployed in &lt;strong>production&lt;/strong> on hundreds of network nodes accross dozens of sites and global regions.&lt;/p>
+&lt;p>In this blog post, I will share a technical architecture that I have deployed in &lt;strong>production&lt;/strong> on hundreds of network nodes across dozens of sites and global regions.&lt;/p>
 &lt;h3 id="the-steps">The Steps&lt;/h3>
 &lt;ol>
 &lt;li>Populate &lt;strong>Source of Truth (Netbox)&lt;/strong> with desired configuration context to be loaded as dynamic inventory host variables
@@ -23,7 +23,7 @@
 &lt;li>Securely encrypted keys which can be re-produced on each host (i.e not change on every run)&lt;/li>
 &lt;/ul>
 &lt;/li>
-&lt;li>Render intended confgiurations with Ansible &lt;strong>Jinja2 Templating&lt;/strong>&lt;/li>
+&lt;li>Render intended configurations with Ansible &lt;strong>Jinja2 Templating&lt;/strong>&lt;/li>
 &lt;li>&lt;strong>Deploy&lt;/strong> desired configuration with Ansible
 &lt;ul>
 &lt;li>In this case, we are deploying on Juniper Devices using the junos_config module with the &lt;strong>replace&lt;/strong> argument&lt;/li>
@@ -204,7 +204,7 @@ Junos devices facilitate automation because:&lt;/p>
 &lt;h3 id="source-of-truth---netbox">Source Of Truth - Netbox&lt;/h3>
 &lt;p>First we need to model our devices into a centralized location. &lt;a class="link" href="https://github.com/netbox-community/netbox" target="_blank" rel="noopener"
 >Netbox&lt;/a> is a good tool to use for this, but other products also exist such as Nautobot, Solarwinds, InfoBlox etc&lt;/p>
-&lt;p>In a &lt;a class="link" href="http://localhost:1313/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/" target="_blank" rel="noopener"
+&lt;p>In a &lt;a class="link" href="https://kaonbytes.com/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/" target="_blank" rel="noopener"
 >previous blog post&lt;/a> I discussed how we can use Netbox as our dynamic Ansible inventory. When we populate our Ansible Inventory from Netbox, we can also pull in important &lt;strong>host variables&lt;/strong>. These variables can be used to populate our Juniper System Configuration text file.&lt;/p>
 &lt;p>Example of Ansible hostvars from Netbox inventory:&lt;/p>
 &lt;p>&lt;code># ansible-inventory -i ../netbox/netbox_inventory.yml --host TEST01&lt;/code>&lt;/p>
@@ -425,7 +425,7 @@ data-flex-grow="194"
 data-flex-basis="467px"
 >&lt;/p>
 &lt;p>&lt;strong>Other $9$ Keys (Not SNMP)&lt;/strong>&lt;/p>
-&lt;p>For other System $9$ keys (such as TACACS, RADIUS, etc). We can use the &lt;strong>device hostname&lt;/strong> as our salt. Using the device hostname means we always generate a repeatable $9$ key per device but not the same key accross all devices.&lt;/p>
+&lt;p>For other System $9$ keys (such as TACACS, RADIUS, etc). We can use the &lt;strong>device hostname&lt;/strong> as our salt. Using the device hostname means we always generate a repeatable $9$ key per device but not the same key across all devices.&lt;/p>
 &lt;p>In the same python filter, we have some modified functions here which take two inputs&lt;/p>
 &lt;ol>
 &lt;li>Device Hostname&lt;/li>
