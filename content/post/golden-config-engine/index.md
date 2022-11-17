@@ -26,7 +26,7 @@ However, this is a **complex** problem to solve because a universal one-size-fit
 ... just to name a few. So how can we do it?
 
 ## Purpose
-In this blog post, I will share a technical architecture that I have deployed in **production** on hundreds of network nodes accross dozens of sites and global regions. 
+In this blog post, I will share a technical architecture that I have deployed in **production** on hundreds of network nodes across dozens of sites and global regions. 
 
 ### The Steps
 1. Populate **Source of Truth (Netbox)** with desired configuration context to be loaded as dynamic inventory host variables
@@ -35,7 +35,7 @@ In this blog post, I will share a technical architecture that I have deployed in
 2. Populate **Secret Passwords** in Ansible Automation Platform Credentials library, Ansible Vault, HashiCorp Vault or some other secure method to be called later
 3. Build custom python module to **create idempotent secret keys** per host. 
     * Securely encrypted keys which can be re-produced on each host (i.e not change on every run)
-4. Render intended confgiurations with Ansible **Jinja2 Templating**
+4. Render intended configurations with Ansible **Jinja2 Templating**
 5. **Deploy** desired configuration with Ansible
     * In this case, we are deploying on Juniper Devices using the junos_config module with the **replace** argument
 6. Use the junos_config option **commit_check** to perform Compliance Checking. i.e. Dry Run of changes to be made
@@ -222,7 +222,7 @@ But how can we turn the above snippet into a golden config to apply across multi
 ### Source Of Truth - Netbox
 First we need to model our devices into a centralized location. [Netbox](https://github.com/netbox-community/netbox) is a good tool to use for this, but other products also exist such as Nautobot, Solarwinds, InfoBlox etc
 
-In a [previous blog post](http://localhost:1313/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/) I discussed how we can use Netbox as our dynamic Ansible inventory. When we populate our Ansible Inventory from Netbox, we can also pull in important **host variables**. These variables can be used to populate our Juniper System Configuration text file.
+In a [previous blog post](https://kaonbytes.com/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/) I discussed how we can use Netbox as our dynamic Ansible inventory. When we populate our Ansible Inventory from Netbox, we can also pull in important **host variables**. These variables can be used to populate our Juniper System Configuration text file.
 
 Example of Ansible hostvars from Netbox inventory:
 
@@ -380,7 +380,7 @@ Here's how we can solve this problem:
 
 **Other $9$ Keys (Not SNMP)**
 
-For other System $9$ keys (such as TACACS, RADIUS, etc). We can use the **device hostname** as our salt. Using the device hostname means we always generate a repeatable $9$ key per device but not the same key accross all devices.
+For other System $9$ keys (such as TACACS, RADIUS, etc). We can use the **device hostname** as our salt. Using the device hostname means we always generate a repeatable $9$ key per device but not the same key across all devices.
 
 In the same python filter, we have some modified functions here which take two inputs 
 1. Device Hostname 
