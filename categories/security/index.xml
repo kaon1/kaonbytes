@@ -1,4 +1,430 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security on KaonBytes</title><link>https://kaonbytes.com/categories/security/</link><description>Recent content in security on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 28 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/security/index.xml" rel="self" type="application/rss+xml"/><item><title>Use Ansible to compare Cloud IP Ranges against Firewall object</title><link>https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/</link><pubDate>Thu, 28 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/</guid><description>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/cloud-ip-checks-mini.png" alt="Featured image of post Use Ansible to compare Cloud IP Ranges against Firewall object" />&lt;p>&lt;strong>A common IT Workflow exists&lt;/strong> where a Cloud provider&amp;rsquo;s public IP ranges are added to a static firewall object list.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security on KaonBytes</title><link>https://kaonbytes.com/categories/security/</link><description>Recent content in security on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 05 May 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/security/index.xml" rel="self" type="application/rss+xml"/><item><title>Perimeter Scanner</title><link>https://kaonbytes.com/p/perimeter-scanner/</link><pubDate>Fri, 05 May 2023 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/perimeter-scanner/</guid><description>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/perimeter-scanner-front.png" alt="Featured image of post Perimeter Scanner" />&lt;h2 id="about">About&lt;/h2>
+&lt;p>I put together a system of components to perform &lt;strong>automated perimeter scanning&lt;/strong> using readily available open source tools. Here is a guide on how you can do the same thing.&lt;/p>
+&lt;p>The system can accomplish the following:&lt;/p>
+&lt;ul>
+&lt;li>Actively &lt;strong>port scan&lt;/strong> your IP address space (please do not scan IP space that you do not control!)&lt;/li>
+&lt;li>Store results in a &lt;strong>structured database&lt;/strong> which can provide a snapshot of the state of the perimeter.&lt;/li>
+&lt;li>Perform programmatic checks comparing &lt;strong>current state vs desired state&lt;/strong> and report on discrepancies.&lt;/li>
+&lt;/ul>
+&lt;h3 id="why-port-scan">Why Port Scan?&lt;/h3>
+&lt;p>As network admins, we manage large pools of address space which host various services and expose ports for internal and external connections. In general, these available services are documented, firewalled and compliant to standards.&lt;/p>
+&lt;p>However, human error, misconfigurations, or vendor patches may cause &lt;strong>undesired services&lt;/strong> to be exposed on the network. Port scanning (or port knocking) is one way to determine if these unintended services exist.&lt;/p>
+&lt;p>Port scanning is just one tool we can use to mitigate vulnerabilities. If we follow the &lt;a class="link" href="https://en.wikipedia.org/wiki/Swiss_cheese_model" target="_blank" rel="noopener"
+>swiss cheese model&lt;/a> of layered security, adding this check is beneficial in overall network security posture.&lt;/p>
+&lt;h3 id="the-tools">The Tools&lt;/h3>
+&lt;ul>
+&lt;li>
+&lt;p>Scanning Engine &amp;mdash; Nmap&lt;/p>
+&lt;ul>
+&lt;li>&lt;a class="link" href="https://nmap.org/" target="_blank" rel="noopener"
+>Nmap&lt;/a> is a free and open source utility for network discovery and security auditing.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>Framework &amp;mdash; IVRE&lt;/p>
+&lt;ul>
+&lt;li>&lt;a class="link" href="https://github.com/ivre/ivre" target="_blank" rel="noopener"
+>IVRE&lt;/a> provides the framework to store, view and manipulate the scan results from nmap&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>Source of Truth &amp;mdash; Netbox&lt;/p>
+&lt;ul>
+&lt;li>&lt;a class="link" href="https://github.com/netbox-community/netbox" target="_blank" rel="noopener"
+>Netbox&lt;/a> is used to ingest targets to be scanned and as a reference for desired state&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="the-end-result">The End Result&lt;/h2>
+&lt;h3 id="generated-report">Generated Report&lt;/h3>
+&lt;p>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/email-summary.png"
+width="1176"
+height="1904"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/email-summary_hu8a697b6ef61f3b8fec74acc8efa2407e_277245_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/perimeter-scanner/images/email-summary_hu8a697b6ef61f3b8fec74acc8efa2407e_277245_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="61"
+data-flex-basis="148px"
+>&lt;/p>
+&lt;h3 id="ivre-view-database">IVRE View Database&lt;/h3>
+&lt;p>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/web-view.png"
+width="2233"
+height="2085"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/web-view_hu8439babf6c2b82dfa16490566a3b8b37_415074_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/perimeter-scanner/images/web-view_hu8439babf6c2b82dfa16490566a3b8b37_415074_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="107"
+data-flex-basis="257px"
+>&lt;/p>
+&lt;h3 id="project-code">Project Code&lt;/h3>
+&lt;p>Github Repo of the code can be &lt;a class="link" href="https://github.com/kaon1/perimeter-scanner" target="_blank" rel="noopener"
+>found here&lt;/a>&lt;/p>
+&lt;h2 id="system-implementation">System Implementation&lt;/h2>
+&lt;h3 id="execution-timeline">Execution Timeline&lt;/h3>
+&lt;p>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/timeline.png"
+width="2606"
+height="3407"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/timeline_hu1ff6ad209bd3abb1353f7cd7aebd7487_535387_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/perimeter-scanner/images/timeline_hu1ff6ad209bd3abb1353f7cd7aebd7487_535387_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="76"
+data-flex-basis="183px"
+>&lt;/p>
+&lt;ul>
+&lt;li>Scheduled &lt;a class="link" href="https://github.com/kaon1/perimeter-scanner/blob/main/pscanner/crontab.txt" target="_blank" rel="noopener"
+>cronjob&lt;/a> starts &lt;a class="link" href="https://github.com/kaon1/perimeter-scanner/blob/main/pscanner/pscan_spawn_jobs.py" target="_blank" rel="noopener"
+>pscan_spawn_jobs.py&lt;/a> and does the following:
+&lt;ul>
+&lt;li>Makes an API call to netbox to grab all prefixes and IP addresses tagged for scanning&lt;/li>
+&lt;li>Spawns two nmap jobs per result (one TCP scan and one UDP scan)&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>NMAP Scans run in the background on Network Targets and output the data as .XML files saved locally&lt;/li>
+&lt;li>&lt;a class="link" href="https://github.com/kaon1/perimeter-scanner/blob/main/pscanner/pscan_db_job.sh" target="_blank" rel="noopener"
+>pscan_db_job.sh&lt;/a> is kicked off which does the following:
+&lt;ul>
+&lt;li>Initializes the IVRE Web View&lt;/li>
+&lt;li>Imports the newest scans into the IVRE Database&lt;/li>
+&lt;li>Creates two new web views in IVRE - Last Week&amp;rsquo;s Scans and This Week&amp;rsquo;s Scans&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>&lt;a class="link" href="https://github.com/kaon1/perimeter-scanner/blob/main/pscanner/export_recent_changes.py" target="_blank" rel="noopener"
+>export_recent_changes.py&lt;/a> and &lt;a class="link" href="https://github.com/kaon1/perimeter-scanner/blob/main/pscanner/print_recent_scan.py" target="_blank" rel="noopener"
+>print_recent_scan.py&lt;/a> kickoff which compare the scan data vs the desired data in netbox&lt;/li>
+&lt;li>&lt;a class="link" href="https://github.com/kaon1/perimeter-scanner/blob/main/pscanner/create_email_report.py" target="_blank" rel="noopener"
+>create_email_report.py&lt;/a> ingests the data and generates an email report to be sent&lt;/li>
+&lt;/ul>
+&lt;h3 id="nmap-options-explained">Nmap Options Explained&lt;/h3>
+&lt;p>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/nmap-explained.png"
+width="3450"
+height="1586"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/nmap-explained_hu2889ddb96dca71f79ab272c4c0c70505_81029_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/perimeter-scanner/images/nmap-explained_hu2889ddb96dca71f79ab272c4c0c70505_81029_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="217"
+data-flex-basis="522px"
+>&lt;/p>
+&lt;h3 id="pscan_spawn_jobspy">pscan_spawn_jobs.py&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">ipaddress&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">requests&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">subprocess&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">time&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">datetime&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">datetime&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">timedelta&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">netutils.ip&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">netmask_to_cidr&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### start by killing all nmap processes (if they are running)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">subprocess&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Popen&lt;/span>&lt;span class="p">([&lt;/span>&lt;span class="s1">&amp;#39;killall&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;-9&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;nmap&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## this is the tag used in netbox to classify prefixes and ips to scan&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">nmap_tag&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;nmap_scanning&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_url&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;https://netbox&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_token&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;token&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_headers&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;Authorization&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Token &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_token&lt;/span>&lt;span class="p">)}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># writing date files&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">date_parser&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">datetime&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">now&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">date_stamp&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">date_parser&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">strftime&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;%Y-%m-&lt;/span>&lt;span class="si">%d&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">prev_date_parser&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">datetime&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">now&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">timedelta&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">days&lt;/span>&lt;span class="o">=-&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">prev_date_stamp&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">prev_date_parser&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">strftime&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;%Y-%m-&lt;/span>&lt;span class="si">%d&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">current_scan_fh&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/opt/ivre/ivre-opt/current_scan_date.txt&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;w&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">previous_scan_fh&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/opt/ivre/ivre-opt/previous_scan_date.txt&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;w&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">current_scan_fh&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">write&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">date_stamp&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">current_scan_fh&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">close&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">previous_scan_fh&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">write&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prev_date_stamp&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">previous_scan_fh&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">close&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># end writing date files&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># nmap args to use for TCP Scans&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">nmap_base_args&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;nohup nmap --log-errors --open -T3 -Pn -sS --top-ports 2000 -oX /opt/ivre/ivre-share/&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">date_stamp&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;_tcp_&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># nmap args to use for UDP Scans&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">nmap_base_args_udp&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;nohup nmap --log-errors --open -T3 -Pn -sU --top-ports 250 -oX /opt/ivre/ivre-share/&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">date_stamp&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;_udp_&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># netbox api calls to grab all ip addresses and prefixes tagged with nmap_scanning tag&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_api_ip_addr&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_url&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;/api/ipam/ip-addresses/?limit=0&amp;amp;tag=&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">nmap_tag&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">netbox_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_api_ip_prefix&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_url&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;/api/ipam/prefixes/?limit=0&amp;amp;tag=&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">nmap_tag&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">netbox_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># function to take in address like 172.3.3.0/25 and return 172_3_3_0 and netmask 25&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">explode_address_elements&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address_to_scan&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">exploded_elements_dict&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">exploded_elements_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;address_to_scan_exploded&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ipaddress&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">IPv4Interface&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address_to_scan&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">ip&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;.&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;_&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">exploded_elements_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;address_to_scan_mask&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">netmask_to_cidr&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">ipaddress&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">IPv4Interface&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address_to_scan&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">netmask&lt;/span>&lt;span class="p">)))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">exploded_elements_dict&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># function to spawn one nmap job per ingested prefix or ip address&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">spawn_nmap_jobs&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address_to_scan&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">address_to_scan_exploded&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">address_to_scan_mask&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">is_prefix&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">is_prefix&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">## spawn tcp scans&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">nmap_raw_cmd&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">nmap_base_args&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">address_to_scan_exploded&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;_&amp;#34;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">address_to_scan_mask&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;.xml &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">address_to_scan&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">subprocess&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Popen&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">nmap_raw_cmd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">split&lt;/span>&lt;span class="p">())&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">##spawn udp scans&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">nmap_raw_cmd&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">nmap_base_args_udp&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">address_to_scan_exploded&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;_&amp;#34;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">address_to_scan_mask&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;.xml &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">address_to_scan&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">subprocess&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Popen&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">nmap_raw_cmd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">split&lt;/span>&lt;span class="p">())&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">## spawn tcp scans&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">nmap_raw_cmd&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">nmap_base_args&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">address_to_scan_exploded&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;_&amp;#34;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">address_to_scan_mask&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;.xml &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">address_to_scan&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">split&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/&amp;#34;&lt;/span>&lt;span class="p">)[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">subprocess&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Popen&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">nmap_raw_cmd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">split&lt;/span>&lt;span class="p">())&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">## spawn udp scans&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">nmap_raw_cmd&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">nmap_base_args_udp&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">address_to_scan_exploded&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;_&amp;#34;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">address_to_scan_mask&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;.xml &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">address_to_scan&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">split&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/&amp;#34;&lt;/span>&lt;span class="p">)[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">subprocess&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Popen&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">nmap_raw_cmd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">split&lt;/span>&lt;span class="p">())&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># iterate through netbox ip address query results and start the nmap job&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">ip_addr&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">netbox_api_ip_addr&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ip_elements&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">explode_address_elements&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ip_addr&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;address&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">spawn_nmap_jobs&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ip_addr&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;address&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">ip_elements&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;address_to_scan_exploded&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">ip_elements&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;address_to_scan_mask&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">is_prefix&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">time&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">sleep&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mf">.3&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># iterate through netbox prefix query results and start the nmap job&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">prefix&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">netbox_api_ip_prefix&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ip_elements&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">explode_address_elements&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;prefix&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">spawn_nmap_jobs&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;prefix&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">ip_elements&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;address_to_scan_exploded&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">ip_elements&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;address_to_scan_mask&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">is_prefix&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">True&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">time&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">sleep&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mf">.3&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># all jobs should be started now and script exits. With current params the jobs will complete in 24 hours&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># example output of psaux www&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">###&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## nmap --log-errors --open -T4 -Pn -sS --top-ports 2000 -oX /opt/ivre/ivre-share/2023-02-08_tcp_172_1_1_0_23.xml 172.1.1.0/23&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">## nmap --log-errors --open -T4 -Pn -sU --top-ports 250 -oX /opt/ivre/ivre-share/2023-02-08_udp_172_2_2_0_23.xml 172.2.2.0/23&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="ps-auxww">ps auxww&lt;/h4>
+&lt;p>Example list of spawned nmap processes during the scanning window.&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/pscan-nmaps.PNG"
+width="1280"
+height="585"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/pscan-nmaps_hud36cc2530b5437b3eea41df922f6dfc1_771669_480x0_resize_box_3.PNG 480w, https://kaonbytes.com/p/perimeter-scanner/images/pscan-nmaps_hud36cc2530b5437b3eea41df922f6dfc1_771669_1024x0_resize_box_3.PNG 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="218"
+data-flex-basis="525px"
+>&lt;/p>
+&lt;h4 id="xml-results-file">xml results file&lt;/h4>
+&lt;p>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/xml-results.png"
+width="1183"
+height="1766"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/xml-results_hu855660dcb98b724cea0125925c5f4747_245979_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/perimeter-scanner/images/xml-results_hu855660dcb98b724cea0125925c5f4747_245979_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="66"
+data-flex-basis="160px"
+>&lt;/p>
+&lt;h3 id="processing-the-results">Processing the Results&lt;/h3>
+&lt;p>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/process-results.png"
+width="3255"
+height="2576"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/process-results_hu5f9c98f46dde95848f703365721245be_138579_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/perimeter-scanner/images/process-results_hu5f9c98f46dde95848f703365721245be_138579_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="126"
+data-flex-basis="303px"
+>&lt;/p>
+&lt;h4 id="import-scan-results-into-ivre-db">Import Scan Results into IVRE DB&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="cp">#!/bin/bash
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Bash file to run on ivre-client container with command&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># docker exec -i ivreclient /bin/bash /ivre-opt/pscan_db_job.sh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 1. Purge the view database (web gui view) to start fresh&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 2. Import the latest scan into scan database&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 3. Create two new views -- 1. View of previous scan 2. View of Newest Current Scan&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/bin/sh -c &lt;span class="s2">&amp;#34;echo yes | ivre view --purgedb&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/bin/sh -c &lt;span class="s2">&amp;#34;ivre scan2db --open-ports -s SCAN_SERVER -c pscan_&lt;/span>&lt;span class="k">$(&lt;/span>cat &lt;span class="s2">&amp;#34;/ivre-opt/current_scan_date.txt&amp;#34;&lt;/span>&lt;span class="k">)&lt;/span>&lt;span class="s2"> /ivre-share/&lt;/span>&lt;span class="k">$(&lt;/span>cat &lt;span class="s2">&amp;#34;/ivre-opt/current_scan_date.txt&amp;#34;&lt;/span>&lt;span class="k">)&lt;/span>&lt;span class="s2">*.xml&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/bin/sh -c &lt;span class="s2">&amp;#34;ivre db2view --no-merge nmap --category pscan_&lt;/span>&lt;span class="k">$(&lt;/span>cat &lt;span class="s2">&amp;#34;/ivre-opt/previous_scan_date.txt&amp;#34;&lt;/span>&lt;span class="k">)&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/bin/sh -c &lt;span class="s2">&amp;#34;ivre db2view --no-merge nmap --category pscan_&lt;/span>&lt;span class="k">$(&lt;/span>cat &lt;span class="s2">&amp;#34;/ivre-opt/current_scan_date.txt&amp;#34;&lt;/span>&lt;span class="k">)&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="show-most-recent-scan-results-from-db">Show most recent scan results from DB&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Script run on ivre client container to print out latest scan results from mongo DB&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Calls the mongo query: list(db.view.get_ips_ports(flt=db.view.searchcategory(&amp;#34;pscan_&amp;#34;+current_date))[0])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Converts results to a json dict exported to recent_scan_results.json so future script can read it for email generation&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">ivre.db&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">db&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">json&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">file1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/ivre-opt/current_scan_date.txt&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;r&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">current_date&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">file1&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">readline&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">file1&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">close&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">result_list&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Data to be written&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">scan_export&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">list&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">db&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">view&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get_ips_ports&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">flt&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">db&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">view&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">searchcategory&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;pscan_&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">current_date&lt;/span>&lt;span class="p">))[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">result&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">scan_export&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">result_list&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">({&lt;/span>&lt;span class="s2">&amp;#34;ip_address&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">result&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;addr&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s2">&amp;#34;ports&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">result&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;ports&amp;#39;&lt;/span>&lt;span class="p">]})&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">json_obj&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">dumps&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">result_list&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">indent&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">with&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/ivre-opt/recent_scan_result.json&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;w&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">as&lt;/span> &lt;span class="n">outfile&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">outfile&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">write&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">json_obj&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="show-whats-changed-from-last-scan">Show what&amp;rsquo;s changed from last scan&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Script run on ivre client container to print out latest diff of changes from previous scan to current scan&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Calls the mongo query: list(db.view.diff_categories(category1=&amp;#34;1&amp;#34;,category2=&amp;#34;2&amp;#34;,include_both_open=False))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Converts results to a json dict exported to whats_changed.json so future script can read it for email generation&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">ivre.db&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">db&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">json&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">file1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/ivre-opt/current_scan_date.txt&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;r&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">current_date&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">file1&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">readline&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">strip&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">file1&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">close&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">file2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/ivre-opt/previous_scan_date.txt&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;r&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">previous_date&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">file2&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">readline&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">strip&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">file2&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">close&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">result_list&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">value_map&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;-1&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;No Longer Detected&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;0&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Still Open: Open in previous scan &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">previous_date&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; and open in current scan &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">current_date&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;1&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Newly Detected&amp;#34;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Data to be written&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">scan_export&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">list&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">db&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">view&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">diff_categories&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">category1&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;pscan_&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">previous_date&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">category2&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;pscan_&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">current_date&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">include_both_open&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">result&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">scan_export&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">result_list&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">({&lt;/span>&lt;span class="s2">&amp;#34;ip_address&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">result&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;addr&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s2">&amp;#34;protocol&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">result&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;proto&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s2">&amp;#34;port&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">result&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;port&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s2">&amp;#34;status&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">value_map&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">result&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;value&amp;#39;&lt;/span>&lt;span class="p">])]})&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">sorted_result_list&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">sorted&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">result_list&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">key&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="k">lambda&lt;/span> &lt;span class="n">d&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">d&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">json_obj&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">dumps&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sorted_result_list&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">indent&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">with&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/ivre-opt/whats_changed.json&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;w&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">as&lt;/span> &lt;span class="n">outfile&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">outfile&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">write&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">json_obj&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="generating-report-data">Generating Report Data&lt;/h3>
+&lt;p>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/generate-report.png"
+width="2700"
+height="2424"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/generate-report_huebd5766dded274484af78c0d75f30a2d_543353_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/perimeter-scanner/images/generate-report_huebd5766dded274484af78c0d75f30a2d_543353_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="111"
+data-flex-basis="267px"
+>&lt;/p>
+&lt;h4 id="comparing-results-to-desired-state">Comparing Results to Desired State&lt;/h4>
+&lt;p>We can create a custom field in &lt;strong>Netbox&lt;/strong> to declare the known open ports per IP Address.
+Example:
+&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/nebtox_custom_fields.png"
+width="478"
+height="457"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/nebtox_custom_fields_hu87fa3f5d9cb1d2ce17397c5c7e5956ba_23331_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/perimeter-scanner/images/nebtox_custom_fields_hu87fa3f5d9cb1d2ce17397c5c7e5956ba_23331_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="104"
+data-flex-basis="251px"
+>&lt;/p>
+&lt;h4 id="creating-the-report">Creating the report&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">requests&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">json&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">datetime&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">jinja2&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">Template&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">smtplib&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### global vars&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_url&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;https://netbox&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_token&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;token&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_headers&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;Authorization&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Token &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_token&lt;/span>&lt;span class="p">)}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">date_parser&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">datetime&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">datetime&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">now&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">date_stamp&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">date_parser&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">strftime&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;%Y-%m-&lt;/span>&lt;span class="si">%d&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">recent_scan_filename&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;/opt/ivre/ivre-opt/recent_scan_result.json&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">whats_changed_filename&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;/opt/ivre/ivre-opt/whats_changed.json&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">output_list_no_reason&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">output_list_all&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### functions&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Search if IP + Port Combo exists in netbox custom field called &amp;#39;known open ports&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### example 172.1.1.5--&amp;gt;443 see if exists in data structure:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># {&amp;#39;known_open_ports&amp;#39;: [&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># {&amp;#39;port&amp;#39;: 443, &amp;#39;reason&amp;#39;: &amp;#39;web server&amp;#39;, &amp;#39;protocol&amp;#39;: &amp;#39;tcp&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># }&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># }&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">get_netbox_known_ports_justification&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ip_address&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">port&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ipam_api_call&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_url&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;/api/ipam/ip-addresses/?address=&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">ip_address&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">netbox_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ipam_api_call&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">known_ports_list&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">ipam_api_call&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;custom_fields&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">known_ports_list&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;known_open_ports&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="ow">is&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="kc">None&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">known_port&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">known_ports_list&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;known_open_ports&amp;#39;&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">known_port&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;port&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">port&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">known_port&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;reason&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="s2">&amp;#34;No Justification&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="s2">&amp;#34;No Justification&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="s2">&amp;#34;No Justification&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">get_recent_scan&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">filename&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">f&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">filename&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Gather Data&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">recent_scan_results_dict&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">get_recent_scan&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">recent_scan_filename&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">whats_changed_dict&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">get_recent_scan&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">whats_changed_filename&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Iterate through every entry of most recent scan and compare each entry to netbox &amp;#34;known open port&amp;#34; field&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">entry&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">recent_scan_results_dict&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">discovered_port&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">entry&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;ports&amp;#39;&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">## ignore udp open/filtered state as its not truly open&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">discovered_port&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;state_state&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;open&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">reason&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">get_netbox_known_ports_justification&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">entry&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;ip_address&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">discovered_port&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;port&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">continue&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">reason&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;No Justification&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">output_list_no_reason&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">({&lt;/span>&lt;span class="s2">&amp;#34;IP Address&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">entry&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;ip_address&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="s2">&amp;#34;Open Port&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">discovered_port&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;port&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s2">&amp;#34;Reason&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">reason&lt;/span>&lt;span class="p">})&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">output_list_all&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">({&lt;/span>&lt;span class="s2">&amp;#34;IP Address&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">entry&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;ip_address&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="s2">&amp;#34;Open Port&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">discovered_port&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;port&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s2">&amp;#34;Reason&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">reason&lt;/span>&lt;span class="p">})&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Build Email Template&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">with&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;/opt/ivre/ivre-opt/email_template.j2&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">as&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">rendered&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">Template&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">read&lt;/span>&lt;span class="p">())&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">render&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">date_stamp&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">date_stamp&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">output_list_no_reason&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">output_list_no_reason&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">output_list_all&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">output_list_all&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">whats_changed_dict&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">whats_changed_dict&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">message&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;Subject: &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="se">\n\n&lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;Network Perimeter Port Scanner Summary&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">rendered&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">s&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">smtplib&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">SMTP&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;smtp-server&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">s&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">sendmail&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;pscanner@domain&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;notify@domain&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">message&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">s&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">sendmail&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">s&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">quit&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="email-template---jinja2">Email Template - Jinja2&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="n">Network&lt;/span> &lt;span class="n">Perimeter&lt;/span> &lt;span class="n">Port&lt;/span> &lt;span class="n">Scanner&lt;/span> &lt;span class="n">Summary&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">Web&lt;/span> &lt;span class="n">View&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">https&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="n">pscanner&lt;/span>&lt;span class="o">/&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">IP&lt;/span> &lt;span class="n">Addresses&lt;/span> &lt;span class="ow">and&lt;/span> &lt;span class="n">Prefixes&lt;/span> &lt;span class="n">Tagged&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">Scanning&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">https&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">//&lt;/span>&lt;span class="n">netbox&lt;/span>&lt;span class="o">/&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">---------------------------------------------------------------------------------------------------&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">List&lt;/span> &lt;span class="n">of&lt;/span> &lt;span class="n">Open&lt;/span> &lt;span class="n">Services&lt;/span> &lt;span class="n">that&lt;/span> &lt;span class="n">are&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="n">justified&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>&lt;span class="o">%&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">item&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">output_list_no_reason&lt;/span> &lt;span class="o">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">IP&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;IP Address&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">Open_Port&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;Open Port&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">Reason&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;Reason&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>&lt;span class="o">%&lt;/span> &lt;span class="n">endfor&lt;/span> &lt;span class="o">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">List&lt;/span> &lt;span class="n">of&lt;/span> &lt;span class="n">Changes&lt;/span> &lt;span class="n">From&lt;/span> &lt;span class="n">Previous&lt;/span> &lt;span class="n">Scan&lt;/span> &lt;span class="n">to&lt;/span> &lt;span class="n">Current&lt;/span> &lt;span class="n">Scan&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>&lt;span class="o">%&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">item&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">whats_changed_dict&lt;/span> &lt;span class="o">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">IP&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;ip_address&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">Proto&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;protocol&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">Port&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;port&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">Change&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>&lt;span class="o">%&lt;/span> &lt;span class="n">endfor&lt;/span> &lt;span class="o">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">List&lt;/span> &lt;span class="n">of&lt;/span> &lt;span class="n">Current&lt;/span> &lt;span class="n">Open&lt;/span> &lt;span class="n">Services&lt;/span> &lt;span class="k">with&lt;/span> &lt;span class="n">Justifications&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>&lt;span class="o">%&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">item&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">output_list_all&lt;/span> &lt;span class="o">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">IP&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;IP Address&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">Open_Port&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;Open Port&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="n">Reason&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span> &lt;span class="p">{{&lt;/span> &lt;span class="n">item&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;Reason&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">}}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>&lt;span class="o">%&lt;/span> &lt;span class="n">endfor&lt;/span> &lt;span class="o">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">---------------------------------------------------------------------------------------------------&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">Date&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;{{ date_stamp }}&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="end">End&lt;/h2>
+&lt;p>I never know how to end these posts, so for the small percentage of readers who stuck it out til the end, heres a gif of a robot dancing. Thanks for reading!&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/robot-gif.gif"
+width="305"
+height="480"
+srcset="https://kaonbytes.com/p/perimeter-scanner/images/robot-gif_hu510aedc94c255f888a42f053cac829b5_25101_480x0_resize_box_1.gif 480w, https://kaonbytes.com/p/perimeter-scanner/images/robot-gif_hu510aedc94c255f888a42f053cac829b5_25101_1024x0_resize_box_1.gif 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="63"
+data-flex-basis="152px"
+>&lt;/p></description></item><item><title>Use Ansible to compare Cloud IP Ranges against Firewall object</title><link>https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/</link><pubDate>Thu, 28 Apr 2022 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/</guid><description>&lt;img src="https://kaonbytes.com/p/use-ansible-to-compare-cloud-ip-ranges-against-firewall-object/cloud-ip-checks-mini.png" alt="Featured image of post Use Ansible to compare Cloud IP Ranges against Firewall object" />&lt;p>&lt;strong>A common IT Workflow exists&lt;/strong> where a Cloud provider&amp;rsquo;s public IP ranges are added to a static firewall object list.
 The reasons why this is done include: Network Address Translation (NAT), Access Control (ACL) or logging.&lt;/p>
 &lt;p>Often times, the network engineer is unaware when the Cloud Provider updates their IP ranges and thus the &lt;strong>IT Workflow is no longer in compliance&lt;/strong>.&lt;/p>
 &lt;p>We can &lt;strong>automate&lt;/strong> some of this process by setting up a job to continually check the Cloud IP ranges and &lt;strong>alert&lt;/strong> us if a change is required.&lt;/p>
