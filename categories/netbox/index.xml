@@ -1,4 +1,786 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>netbox on KaonBytes</title><link>https://kaonbytes.com/categories/netbox/</link><description>Recent content in netbox on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 05 May 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/netbox/index.xml" rel="self" type="application/rss+xml"/><item><title>Perimeter Scanner</title><link>https://kaonbytes.com/p/perimeter-scanner/</link><pubDate>Fri, 05 May 2023 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/perimeter-scanner/</guid><description>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/perimeter-scanner-front.png" alt="Featured image of post Perimeter Scanner" />&lt;h2 id="about">About&lt;/h2>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>netbox on KaonBytes</title><link>https://kaonbytes.com/categories/netbox/</link><description>Recent content in netbox on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 10 May 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/categories/netbox/index.xml" rel="self" type="application/rss+xml"/><item><title>Slack IPAM Helper</title><link>https://kaonbytes.com/p/slack-ipam-helper/</link><pubDate>Wed, 10 May 2023 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/slack-ipam-helper/</guid><description>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/ipam-helper-front.png" alt="Featured image of post Slack IPAM Helper" />&lt;h2 id="problem">Problem&lt;/h2>
+&lt;p>A stakeholder posts a question to the Network Team: &amp;ldquo;Hi, what&amp;rsquo;s the IP Address range for &lt;em>some list of services or sites&lt;/em>&lt;/p>
+&lt;p>Within a few minutes, a senior network greybeard emerges from his lair, dusts off his keyboard and starts typing away retrieving all the IPv4 addresses burned into his hippocampus due to years of on-call PTSD.&lt;/p>
+&lt;p>This is a &lt;strong>perfect solution&lt;/strong> and we should never improve upon this. HOWEVER, for argument&amp;rsquo;s sake lets say we wanted a more structured and consistent way of providing this information to our stakeholders?&lt;/p>
+&lt;h2 id="solution">Solution&lt;/h2>
+&lt;p>I built a &lt;a class="link" href="https://api.slack.com/" target="_blank" rel="noopener"
+>Slack Application&lt;/a> which can be invoked with a &lt;strong>slash&lt;/strong> command and interacts with &lt;a class="link" href="https://github.com/netbox-community/netbox" target="_blank" rel="noopener"
+>Netbox&lt;/a> to retrieve IP Address Management (IPAM) information.&lt;/p>
+&lt;p>The application code is hosted on &lt;a class="link" href="https://aws.amazon.com/lambda/" target="_blank" rel="noopener"
+>AWS Lambda Functions&lt;/a> which are triggered by an API Gateway request. The AWS infrastructure is deployed using Infrastructure as Code (IaC) principles with a Github, Drone, Terraform pipeline.&lt;/p>
+&lt;p>This blog post is a guide on how you can do it too.&lt;/p>
+&lt;h3 id="why-build-it">Why build it?&lt;/h3>
+&lt;p>As I mentioned above, some of the most common queries asked of Network Teams are IP Address questions from stakeholders within the organization. Generally relating to, allow list ranges, egress IPs, site and user specific IP addresses for identification. Some examples may include:&lt;/p>
+&lt;ul>
+&lt;li>What are the VPN Subnets?&lt;/li>
+&lt;li>Can I get a list of all remote site&amp;rsquo;s Internet Egress addresses?&lt;/li>
+&lt;li>What are the Wireless Subnets in Site X?&lt;/li>
+&lt;/ul>
+&lt;p>Instead of relying on shared spreadsheets and/or tribal knowledge which may change based on which engineer is answering the question this week. If we focus our energy on maintaining an accurate single source of truth (SSoT), then we can relay this information back with programmatic efficiency.&lt;/p>
+&lt;h3 id="where-to-host-it">Where to host it?&lt;/h3>
+&lt;p>It depends.&lt;/p>
+&lt;p>Slack is in the public cloud therefore, slash commands, webhooks and bots need to make calls to public endpoints. If your SSoT (in this case Netbox) is not accessible on a public endpoint then what?&lt;/p>
+&lt;p>Well, in my case, i&amp;rsquo;m hosting Netbox in a private AWS VPC so the best solution is to create a public AWS API Gateway Endpoint which integrates with an AWS Lambda Function. The lambda function acts as a buffer between the public internet and the Netbox API. Request comes in to the API Gateway, gets forwarded to the lambda, lambda python code performs the logic, talks to Netbox and returns a pretty result for the end user.&lt;/p>
+&lt;h2 id="whats-it-look-like">What&amp;rsquo;s it look like?&lt;/h2>
+&lt;p>User types &lt;strong>/ipam&lt;/strong> in Slack and a menu appears like below:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/menu.png"
+width="1639"
+height="1324"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/menu_hu6a8e8513e52340f96480c49fe9907438_156728_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/menu_hu6a8e8513e52340f96480c49fe9907438_156728_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="123"
+data-flex-basis="297px"
+>&lt;/p>
+&lt;p>&lt;strong>Example 1:&lt;/strong> User chooses first radio button and gets back a list of prefixes with descriptions:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/result1.png"
+width="1637"
+height="1335"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/result1_hu30831986a31276c188008bcbb5e21624_249454_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/result1_hu30831986a31276c188008bcbb5e21624_249454_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="122"
+data-flex-basis="294px"
+>&lt;/p>
+&lt;p>&lt;strong>Example 2:&lt;/strong> User enters a specific IP Address in the form and presses enter. They get back the full JSON result that Netbox has on that IP Address:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/result2.png"
+width="1635"
+height="1322"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/result2_hu3daeee20fbde20e17a46c67d9f53503d_160592_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/result2_hu3daeee20fbde20e17a46c67d9f53503d_160592_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="123"
+data-flex-basis="296px"
+>&lt;/p>
+&lt;p>&lt;strong>Example 3:&lt;/strong> User enters an IP Address that is not known, however is part of a larger prefix. We return information of the parent prefixes:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/result3.png"
+width="1635"
+height="1326"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/result3_huf58ee4a3c61ce1e6f972bcdec1e6d78a_128778_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/result3_huf58ee4a3c61ce1e6f972bcdec1e6d78a_128778_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="123"
+data-flex-basis="295px"
+>&lt;/p>
+&lt;h3 id="high-level-architecture-diagram">High Level Architecture Diagram&lt;/h3>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/ipam-helper-arch.png"
+width="3527"
+height="2334"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/ipam-helper-arch_hu78d2a7a553fb90360d64becd8a1f651f_316380_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/ipam-helper-arch_hu78d2a7a553fb90360d64becd8a1f651f_316380_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="151"
+data-flex-basis="362px"
+>&lt;/p>
+&lt;h3 id="the-code">The Code&lt;/h3>
+&lt;p>All code can be found on my &lt;a class="link" href="https://github.com/kaon1/ipam-helper" target="_blank" rel="noopener"
+>GitHub here&lt;/a>&lt;/p>
+&lt;h3 id="deploying-with-a-terraform-drone-github-pipeline">Deploying with a Terraform, Drone, GitHub Pipeline&lt;/h3>
+&lt;p>Why should we use Infrastructure as Code (IaC)?&lt;/p>
+&lt;p>We don&amp;rsquo;t want this project to turn into tech debt. IaC helps with this because:&lt;/p>
+&lt;ul>
+&lt;li>Allows for version controlled configuration changes&lt;/li>
+&lt;li>Self-documents (for the most part)&lt;/li>
+&lt;li>Creates an easy-to-follow process for updating and maintaining the application and system environment&lt;/li>
+&lt;/ul>
+&lt;p>Example Pipeline Run:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/drone1.png"
+width="1718"
+height="1319"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/drone1_hu848b6f363620699dfe57603f70751de7_278586_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/drone1_hu848b6f363620699dfe57603f70751de7_278586_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="130"
+data-flex-basis="312px"
+>&lt;/p>
+&lt;p>In this post, I am not going to dive deep into the IaC pipeline. If you want to learn more about it, you can follow my previous post: &lt;a class="link" href="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/" target="_blank" rel="noopener"
+>bgpalerter-as-code-using-a-terraform-pipeline&lt;/a>&lt;/p>
+&lt;h2 id="system-components">System Components&lt;/h2>
+&lt;h3 id="netbox-ipam-and-tagging">Netbox IPAM and Tagging&lt;/h3>
+&lt;p>The key to this whole endeavor is to make sure we &lt;strong>maintain accurate data&lt;/strong> in our IPAM. Much of this work will be manual, but it needs to be done somewhere, so its better that these updates are centralized.&lt;/p>
+&lt;p>Another way to supplement the IPAM data is to backfill Netbox with data directly from our devices. I have a blog post showing how we can do that &lt;a class="link" href="https://kaonbytes.com/p/netbox-dynamic-inventory-for-ansible-as-a-feedback-loop/" target="_blank" rel="noopener"
+>here &amp;ndash; netbox-dynamic-inventory-for-ansible-as-a-feedback-loop&lt;/a>&lt;/p>
+&lt;p>In addition to maintaining accurate data, we also need to &lt;strong>tag&lt;/strong> the data that we want to relay to our stakeholders. For example, user clicks the &lt;strong>VPN Subnets&lt;/strong> button on the slack app, then the data returned should be all prefixes tagged with &lt;strong>vpn_subnets&lt;/strong>.&lt;/p>
+&lt;p>Example of tagging prefixes in Netbox:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/netbox-tag.png"
+width="1720"
+height="1328"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/netbox-tag_hu3e5b2cdf6dc80c95a55ba3a0ce1f3d51_134248_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/netbox-tag_hu3e5b2cdf6dc80c95a55ba3a0ce1f3d51_134248_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="129"
+data-flex-basis="310px"
+>&lt;/p>
+&lt;h3 id="slack-api-admin">Slack API Admin&lt;/h3>
+&lt;p>Building the Slack App requires access to &lt;a class="link" href="https://api.slack.com/start/building" target="_blank" rel="noopener"
+>https://api.slack.com/start/building&lt;/a>. Once you have access, you can start building your app.&lt;/p>
+&lt;h4 id="slash-commands">Slash Commands&lt;/h4>
+&lt;p>First we can start by creating the &lt;strong>/ipam&lt;/strong> slash command as shown here:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/slash1.png"
+width="1720"
+height="1328"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/slash1_hu2d54cf6ef24194f98e46d77685eaf7f4_129484_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/slash1_hu2d54cf6ef24194f98e46d77685eaf7f4_129484_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="129"
+data-flex-basis="310px"
+>&lt;/p>
+&lt;p>Inside the command, we enter our API Gateway Public Endpoint (we haven&amp;rsquo;t actually created that yet):&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/slash2.png"
+width="1720"
+height="1328"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/slash2_hu4fbc73f683e04984d79d5da3a93ab069_88964_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/slash2_hu4fbc73f683e04984d79d5da3a93ab069_88964_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="129"
+data-flex-basis="310px"
+>&lt;/p>
+&lt;p>The response of this endpoint will be a JSON result which will show our initial menu.&lt;/p>
+&lt;h4 id="interactivity--shortcuts">Interactivity &amp;amp; Shortcuts&lt;/h4>
+&lt;p>When a user interacts with the initial menu, a new webhook is sent to slack. The destination of this webhook can be configured under Slack &amp;ndash;&amp;gt; Interactivity.
+Here we enter our 2nd API Gateway endpoint which points to our second lambda (not configured yet)&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/slack-slash-2.png"
+width="1718"
+height="1319"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/slack-slash-2_hu1a1ed026515e91f0bcd55b3177968638_163284_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/slack-slash-2_hu1a1ed026515e91f0bcd55b3177968638_163284_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="130"
+data-flex-basis="312px"
+>&lt;/p>
+&lt;h4 id="token">Token&lt;/h4>
+&lt;p>A verification token is sent along with all slash command payloads. Our Lambda function will parse this token and verify that it is coming from our workspace. This prevents unauthorized users from gaining access to the Netbox data.&lt;/p>
+&lt;p>The verification token can be found in your Slack App Admin &amp;ndash;&amp;gt; Basic Information &amp;ndash;&amp;gt; Verification Token&lt;/p>
+&lt;h4 id="block-kit-builder">Block Kit Builder&lt;/h4>
+&lt;p>Block Kit builder is a visualization tool that slack provides to build your forms and user input fields. The JSON payload can be copied to our lambda function as the returning result of the &lt;strong>/ipam&lt;/strong> slash command.&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/block-kit.png"
+width="1718"
+height="1319"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/block-kit_hu64fe5b48f296da22cd7e73bd015d1b38_182970_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/block-kit_hu64fe5b48f296da22cd7e73bd015d1b38_182970_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="130"
+data-flex-basis="312px"
+>&lt;/p>
+&lt;h3 id="amazon-aws-components">Amazon AWS Components&lt;/h3>
+&lt;h4 id="api-gateway">API Gateway&lt;/h4>
+&lt;p>Terraform Code:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-tf" data-lang="tf">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_apigatewayv2_api&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam-helper-slack-api&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;ipam-helper-slack-api&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">protocol_type&lt;/span> = &lt;span class="s2">&amp;#34;HTTP&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_apigatewayv2_integration&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam-get-menu-integration&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">api_id&lt;/span> = &lt;span class="nx">aws_apigatewayv2_api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">helper&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">slack&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">integration_type&lt;/span> = &lt;span class="s2">&amp;#34;AWS_PROXY&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">connection_type&lt;/span> = &lt;span class="s2">&amp;#34;INTERNET&amp;#34;&lt;/span>&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"> # content_handling_strategy = &amp;#34;CONVERT_TO_TEXT&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="na">description&lt;/span> = &lt;span class="s2">&amp;#34;Ipam Helper Get Menu Integration&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">integration_method&lt;/span> = &lt;span class="s2">&amp;#34;POST&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">integration_uri&lt;/span> = &lt;span class="nx">aws_lambda_function&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_get_menu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">invoke_arn&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">passthrough_behavior&lt;/span> = &lt;span class="s2">&amp;#34;WHEN_NO_MATCH&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_apigatewayv2_integration&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam-return-action-integration&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">api_id&lt;/span> = &lt;span class="nx">aws_apigatewayv2_api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">helper&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">slack&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">integration_type&lt;/span> = &lt;span class="s2">&amp;#34;AWS_PROXY&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">connection_type&lt;/span> = &lt;span class="s2">&amp;#34;INTERNET&amp;#34;&lt;/span>&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"> # content_handling_strategy = &amp;#34;CONVERT_TO_TEXT&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="na">description&lt;/span> = &lt;span class="s2">&amp;#34;Ipam Helper Return Action Integration&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">integration_method&lt;/span> = &lt;span class="s2">&amp;#34;POST&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">integration_uri&lt;/span> = &lt;span class="nx">aws_lambda_function&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_return_action&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">invoke_arn&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">passthrough_behavior&lt;/span> = &lt;span class="s2">&amp;#34;WHEN_NO_MATCH&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_apigatewayv2_route&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam-get-menu-route&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">api_id&lt;/span> = &lt;span class="nx">aws_apigatewayv2_api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">helper&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">slack&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">route_key&lt;/span> = &lt;span class="s2">&amp;#34;ANY /ipam_get_menu&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">target&lt;/span> = &lt;span class="s2">&amp;#34;integrations/&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">aws_apigatewayv2_integration&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">get&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">menu&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">integration&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_apigatewayv2_route&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam-return-action-route&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">api_id&lt;/span> = &lt;span class="nx">aws_apigatewayv2_api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">helper&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">slack&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">route_key&lt;/span> = &lt;span class="s2">&amp;#34;ANY /ipam_return_action&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">target&lt;/span> = &lt;span class="s2">&amp;#34;integrations/&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">aws_apigatewayv2_integration&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">return&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">action&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">integration&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_apigatewayv2_stage&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam-helper-slack-api-deploy&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">api_id&lt;/span> = &lt;span class="nx">aws_apigatewayv2_api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">helper&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">slack&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;default&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">auto_deploy&lt;/span> = &lt;span class="kc">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>API GW in GUI:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/api-gw-front.png"
+width="1693"
+height="782"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/api-gw-front_hu5e3811831ca7ebd7dff1866194af9d40_80559_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/api-gw-front_hu5e3811831ca7ebd7dff1866194af9d40_80559_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="216"
+data-flex-basis="519px"
+>&lt;/p>
+&lt;p>API GW Integrations to Lambdas:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/api-gw-integrations.png"
+width="1696"
+height="838"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/api-gw-integrations_hu6692904db7bc339e453cbc4bf6b46713_109494_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/api-gw-integrations_hu6692904db7bc339e453cbc4bf6b46713_109494_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="202"
+data-flex-basis="485px"
+>&lt;/p>
+&lt;p>API GW Routes:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/api-gw-routes.png"
+width="1711"
+height="766"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/api-gw-routes_hufd2b261681fe099637ef75e67e489a00_72440_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/api-gw-routes_hufd2b261681fe099637ef75e67e489a00_72440_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="223"
+data-flex-basis="536px"
+>&lt;/p>
+&lt;h4 id="lambda-1---get-menu">Lambda 1 - Get Menu&lt;/h4>
+&lt;p>Terraform:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-tf" data-lang="tf">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">data&lt;/span> &lt;span class="s2">&amp;#34;archive_file&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam_get_menu&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">type&lt;/span> = &lt;span class="s2">&amp;#34;zip&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">source_dir&lt;/span> = &lt;span class="nb">abspath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">/../../lambda_ipam_get_menu&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">output_path&lt;/span> = &lt;span class="nb">abspath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">/../modules/ipam-helper/lambda_ipam_get_menu.zip&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_iam_role&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;iam_for_ipam_get_menu&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;iam_for_ipam_get_menu&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">assume_role_policy&lt;/span> = &lt;span class="o">&amp;lt;&amp;lt;EOF&lt;/span>&lt;span class="s">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">{
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Version&amp;#34;: &amp;#34;2012-10-17&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Statement&amp;#34;: [
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Action&amp;#34;: &amp;#34;sts:AssumeRole&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Principal&amp;#34;: {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Service&amp;#34;: &amp;#34;lambda.amazonaws.com&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> },
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Effect&amp;#34;: &amp;#34;Allow&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Sid&amp;#34;: &amp;#34;&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> ]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">}
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&lt;/span>&lt;span class="o">EOF&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_lambda_function&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam_get_menu&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">filename&lt;/span> = &lt;span class="nb">data&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">archive_file&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_get_menu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">output_path&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">function_name&lt;/span> = &lt;span class="s2">&amp;#34;ipam_get_menu&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">role&lt;/span> = &lt;span class="nx">aws_iam_role&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">iam_for_ipam_get_menu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arn&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">handler&lt;/span> = &lt;span class="s2">&amp;#34;lambda_function.lambda_handler&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">source_code_hash&lt;/span> = &lt;span class="nb">filebase64sha256&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">data&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">archive_file&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_get_menu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">output_path&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">runtime&lt;/span> = &lt;span class="s2">&amp;#34;python3.8&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">timeout&lt;/span> = &lt;span class="m">30&lt;/span>&lt;span class="c1"> # Time out in second, default value is 3
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="na">memory_size&lt;/span> = &lt;span class="m">128&lt;/span>&lt;span class="c1"> # Default value in MB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">environment&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">variables&lt;/span> = &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">kmsEncryptedToken&lt;/span> = &lt;span class="s2">&amp;#34;replacelater&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">depends_on&lt;/span> = &lt;span class="p">[&lt;/span>&lt;span class="nx">aws_cloudwatch_log_group&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">cw_ipam_get_menu&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">tags&lt;/span> = &lt;span class="nb">var&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">tags&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_cloudwatch_log_group&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;cw_ipam_get_menu&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;/aws/lambda/ipam_get_menu&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">retention_in_days&lt;/span> = &lt;span class="m">180&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># See also the following AWS managed policy: AWSLambdaBasicExecutionRole
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_iam_policy&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam_get_menu_lambda_logging&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;ipam_get_menu_lambda_logging&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">path&lt;/span> = &lt;span class="s2">&amp;#34;/&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">description&lt;/span> = &lt;span class="s2">&amp;#34;IAM policy for logging from a lambda&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">policy&lt;/span> = &lt;span class="o">&amp;lt;&amp;lt;EOF&lt;/span>&lt;span class="s">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">{
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Version&amp;#34;: &amp;#34;2012-10-17&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Statement&amp;#34;: [
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Action&amp;#34;: [
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;logs:CreateLogGroup&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;logs:CreateLogStream&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;logs:PutLogEvents&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> ],
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Resource&amp;#34;: &amp;#34;arn:aws:logs:*:*:*&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Effect&amp;#34;: &amp;#34;Allow&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> },
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Sid&amp;#34;: &amp;#34;VisualEditor0&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Effect&amp;#34;: &amp;#34;Allow&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Action&amp;#34;: &amp;#34;kms:*&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Resource&amp;#34;: &amp;#34;*&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> ]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">}
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&lt;/span>&lt;span class="o">EOF&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_iam_role_policy_attachment&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam_get_menu_lambda_logs&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">role&lt;/span> = &lt;span class="nx">aws_iam_role&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">iam_for_ipam_get_menu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">policy_arn&lt;/span> = &lt;span class="nx">aws_iam_policy&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_get_menu_lambda_logging&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arn&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_lambda_permission&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;apigw&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">statement_id&lt;/span> = &lt;span class="s2">&amp;#34;AllowAPIGatewayInvoke&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">action&lt;/span> = &lt;span class="s2">&amp;#34;lambda:InvokeFunction&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">function_name&lt;/span> = &lt;span class="nx">aws_lambda_function&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_get_menu&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">function_name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">principal&lt;/span> = &lt;span class="s2">&amp;#34;apigateway.amazonaws.com&amp;#34;&lt;/span>&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"> # The /*/* portion grants access from any method on any resource
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"> # within the API Gateway &amp;#34;REST API&amp;#34;.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="na">source_arn&lt;/span> = &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">aws_apigatewayv2_api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">helper&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">slack&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">execution_arn&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">/*/*/ipam_get_menu&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Python Code:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">boto3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">json&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">logging&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">os&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">base64&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">b64decode&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">urllib.parse&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">parse_qs&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">ENCRYPTED_EXPECTED_TOKEN&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">environ&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;kmsEncryptedToken&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">kms&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">boto3&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">client&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;kms&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">expected_token&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">kms&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">decrypt&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">CiphertextBlob&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">b64decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ENCRYPTED_EXPECTED_TOKEN&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">EncryptionContext&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;LambdaFunctionName&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">environ&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;AWS_LAMBDA_FUNCTION_NAME&amp;#39;&lt;/span>&lt;span class="p">]}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)[&lt;/span>&lt;span class="s1">&amp;#39;Plaintext&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;utf-8&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">logger&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">logging&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">getLogger&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">logger&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">setLevel&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">logging&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">INFO&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">respond&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">err&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">res&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;statusCode&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;400&amp;#39;&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="n">err&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="s1">&amp;#39;200&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;body&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">err&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">message&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="n">err&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">dumps&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">res&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">encode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;utf8&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;headers&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;Content-Type&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;application/json&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">lambda_handler&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">event&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">context&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># logger.info(event)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">decode_body&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">b64decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">event&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;body&amp;#39;&lt;/span>&lt;span class="p">]))&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;ascii&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">params&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">parse_qs&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">decode_body&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">token&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">params&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;token&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">token&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="n">expected_token&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">logger&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;Request token (&lt;/span>&lt;span class="si">%s&lt;/span>&lt;span class="s2">) does not match expected&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">token&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">respond&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="ne">Exception&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Invalid request token&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">f&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">open&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;response_menu.json&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;r&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">slack_menu_json&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">loads&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">read&lt;/span>&lt;span class="p">())&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">respond&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">slack_menu_json&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Console:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/lambda-get-menu.png"
+width="1718"
+height="1319"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/lambda-get-menu_hu60e53b992af48f819e5564e498d1c3a0_151660_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/lambda-get-menu_hu60e53b992af48f819e5564e498d1c3a0_151660_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="130"
+data-flex-basis="312px"
+>&lt;/p>
+&lt;h4 id="lambda-2---return-data">Lambda 2 - Return Data&lt;/h4>
+&lt;p>Terraform:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-tf" data-lang="tf">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">data&lt;/span> &lt;span class="s2">&amp;#34;archive_file&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam_return_action&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">type&lt;/span> = &lt;span class="s2">&amp;#34;zip&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">source_dir&lt;/span> = &lt;span class="nb">abspath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">/../../lambda_ipam_return_action&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">output_path&lt;/span> = &lt;span class="nb">abspath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">root&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">/../modules/ipam-helper/lambda_ipam_return_action.zip&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_iam_role&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;iam_for_ipam_return_action&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;iam_for_ipam_return_action&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">assume_role_policy&lt;/span> = &lt;span class="o">&amp;lt;&amp;lt;EOF&lt;/span>&lt;span class="s">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">{
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Version&amp;#34;: &amp;#34;2012-10-17&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Statement&amp;#34;: [
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Action&amp;#34;: &amp;#34;sts:AssumeRole&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Principal&amp;#34;: {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Service&amp;#34;: &amp;#34;lambda.amazonaws.com&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> },
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Effect&amp;#34;: &amp;#34;Allow&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Sid&amp;#34;: &amp;#34;&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> ]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">}
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&lt;/span>&lt;span class="o">EOF&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_lambda_function&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam_return_action&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">filename&lt;/span> = &lt;span class="nb">data&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">archive_file&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_return_action&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">output_path&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">function_name&lt;/span> = &lt;span class="s2">&amp;#34;ipam_return_action&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">role&lt;/span> = &lt;span class="nx">aws_iam_role&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">iam_for_ipam_return_action&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arn&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">handler&lt;/span> = &lt;span class="s2">&amp;#34;lambda_function.lambda_handler&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">source_code_hash&lt;/span> = &lt;span class="nb">filebase64sha256&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">data&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">archive_file&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_return_action&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">output_path&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">runtime&lt;/span> = &lt;span class="s2">&amp;#34;python3.8&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">timeout&lt;/span> = &lt;span class="m">30&lt;/span>&lt;span class="c1"> # Time out in second, default value is 3
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="na">memory_size&lt;/span> = &lt;span class="m">128&lt;/span>&lt;span class="c1"> # Default value in MB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">vpc_config&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">subnet_ids&lt;/span> = &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;&amp;lt;subnet1&amp;gt;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;&amp;lt;subnet2&amp;gt;&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">security_group_ids&lt;/span> = &lt;span class="p">[&lt;/span>&lt;span class="nx">aws_security_group&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">lambda_slackbot_sg&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">environment&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">variables&lt;/span> = &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">kmsEncryptedToken&lt;/span> = &lt;span class="s2">&amp;#34;replacelater&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">NETBOX_TOKEN&lt;/span> = &lt;span class="s2">&amp;#34;replacelater&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">depends_on&lt;/span> = &lt;span class="p">[&lt;/span>&lt;span class="nx">aws_cloudwatch_log_group&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">cw_ipam_return_action&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">tags&lt;/span> = &lt;span class="nb">var&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">tags&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_cloudwatch_log_group&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;cw_ipam_return_action&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;/aws/lambda/ipam_return_action&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">retention_in_days&lt;/span> = &lt;span class="m">180&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># See also the following AWS managed policy: AWSLambdaBasicExecutionRole
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_iam_policy&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam_return_action_lambda_logging&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;ipam_return_action_lambda_logging&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">path&lt;/span> = &lt;span class="s2">&amp;#34;/&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">description&lt;/span> = &lt;span class="s2">&amp;#34;IAM policy for logging from a lambda&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">policy&lt;/span> = &lt;span class="o">&amp;lt;&amp;lt;EOF&lt;/span>&lt;span class="s">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">{
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Version&amp;#34;: &amp;#34;2012-10-17&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Statement&amp;#34;: [
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Action&amp;#34;: [
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;logs:CreateLogGroup&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;logs:CreateLogStream&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;logs:PutLogEvents&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> ],
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Resource&amp;#34;: &amp;#34;arn:aws:logs:*:*:*&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Effect&amp;#34;: &amp;#34;Allow&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> },
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> {
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Sid&amp;#34;: &amp;#34;VisualEditor0&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Effect&amp;#34;: &amp;#34;Allow&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Action&amp;#34;: &amp;#34;kms:*&amp;#34;,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> &amp;#34;Resource&amp;#34;: &amp;#34;*&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> ]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">}
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&lt;/span>&lt;span class="o">EOF&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_iam_role_policy_attachment&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;ipam_return_action_lambda_logs&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">role&lt;/span> = &lt;span class="nx">aws_iam_role&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">iam_for_ipam_return_action&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">policy_arn&lt;/span> = &lt;span class="nx">aws_iam_policy&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_return_action_lambda_logging&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arn&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_lambda_permission&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;apigw_2&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">statement_id&lt;/span> = &lt;span class="s2">&amp;#34;AllowAPIGatewayInvoke&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">action&lt;/span> = &lt;span class="s2">&amp;#34;lambda:InvokeFunction&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">function_name&lt;/span> = &lt;span class="nx">aws_lambda_function&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam_return_action&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">function_name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">principal&lt;/span> = &lt;span class="s2">&amp;#34;apigateway.amazonaws.com&amp;#34;&lt;/span>&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"> # The /*/* portion grants access from any method on any resource
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"> # within the API Gateway &amp;#34;REST API&amp;#34;.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="na">source_arn&lt;/span> = &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">aws_apigatewayv2_api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ipam&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">helper&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">slack&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">api&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">execution_arn&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">/*/*/ipam_return_action&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_iam_role_policy_attachment&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;iam_role_policy_attachment_lambda_vpc_access_execution&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">role&lt;/span> = &lt;span class="nx">aws_iam_role&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">iam_for_ipam_return_action&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">policy_arn&lt;/span> = &lt;span class="s2">&amp;#34;arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_security_group&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;lambda_slackbot_sg&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="c1">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"> # provider = aws.us-east-1
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;lambda_slackbot_sg&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">description&lt;/span> = &lt;span class="s2">&amp;#34;Security Group to manage lambda_slackbot access&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">vpc_id&lt;/span> = &lt;span class="nb">data&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">terraform_remote_state&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">account_base&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">outputs&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">vpc_east_id&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">ingress&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">from_port&lt;/span> = &lt;span class="m">80&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">to_port&lt;/span> = &lt;span class="m">80&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">protocol&lt;/span> = &lt;span class="s2">&amp;#34;tcp&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">cidr_blocks&lt;/span> = &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;10.0.0.0/8&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">ingress&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">from_port&lt;/span> = &lt;span class="m">443&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">to_port&lt;/span> = &lt;span class="m">443&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">protocol&lt;/span> = &lt;span class="s2">&amp;#34;tcp&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">cidr_blocks&lt;/span> = &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;10.0.0.0/8&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">ingress&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">from_port&lt;/span> = &lt;span class="m">-1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">to_port&lt;/span> = &lt;span class="m">-1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">protocol&lt;/span> = &lt;span class="s2">&amp;#34;icmp&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">cidr_blocks&lt;/span> = &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;10.0.0.0/8&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">egress&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">from_port&lt;/span> = &lt;span class="m">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">to_port&lt;/span> = &lt;span class="m">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">protocol&lt;/span> = &lt;span class="s2">&amp;#34;-1&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">cidr_blocks&lt;/span> = &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;0.0.0.0/0&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Python Code:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">boto3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">json&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">logging&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">os&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">requests&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">ipaddress&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">urllib.parse&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">pprint&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">base64&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">b64decode&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">urllib.parse&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">parse_qs&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">ENCRYPTED_EXPECTED_TOKEN&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">environ&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;kmsEncryptedToken&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">NETBOX_TOKEN&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">environ&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;NETBOX_TOKEN&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_url&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;&amp;lt;redacted&amp;gt;&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">netbox_headers&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;Authorization&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Token &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">NETBOX_TOKEN&lt;/span>&lt;span class="p">)}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">kms&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">boto3&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">client&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;kms&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">expected_token&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">kms&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">decrypt&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">CiphertextBlob&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">b64decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ENCRYPTED_EXPECTED_TOKEN&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">EncryptionContext&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;LambdaFunctionName&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">environ&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;AWS_LAMBDA_FUNCTION_NAME&amp;#39;&lt;/span>&lt;span class="p">]}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)[&lt;/span>&lt;span class="s1">&amp;#39;Plaintext&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;utf-8&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">logger&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">logging&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">getLogger&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">logger&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">setLevel&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">logging&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">INFO&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">respond&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">err&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">res&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;statusCode&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;400&amp;#39;&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="n">err&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="s1">&amp;#39;200&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;body&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">err&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">message&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="n">err&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">dumps&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">res&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">encode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;utf8&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;headers&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;Content-Type&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;application/json&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">netbox_return_prefixes&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ipam_api_call&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_url&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;/api/ipam/prefixes/?limit=0&amp;amp;tag=&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">netbox_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ipam_api_call&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">netbox_return_addresses&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ipam_api_call&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_url&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;/api/ipam/ip-addresses/?limit=0&amp;amp;tag=&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">netbox_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ipam_api_call&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">netbox_return_ranges&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ipam_api_call&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_url&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;/api/ipam/ip-ranges/?limit=0&amp;amp;tag=&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">netbox_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ipam_api_call&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">netbox_return_prefix_input&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">input&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ipam_api_call&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_url&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;/api/ipam/prefixes/?limit=0&amp;amp;prefix=&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">input&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">netbox_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ipam_api_call&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">netbox_return_address_input&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">input&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ipam_api_call&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_url&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;/api/ipam/ip-addresses/?limit=0&amp;amp;address=&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">input&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">netbox_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ipam_api_call&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">netbox_return_prefix_contains_input&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">input&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ipam_api_call&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">netbox_url&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;/api/ipam/prefixes/?limit=0&amp;amp;contains=&amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">input&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">netbox_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">False&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ipam_api_call&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">send_ephemeral_message&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">response_url&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">data&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_headers&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;Content-Type&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;application/json&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># logger.info(response_url)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">post&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">response_url&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">headers&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">ephemeral_headers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">action_get_public_nat&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;public_egress&amp;#34;&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">public_nat_prefixes&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_prefixes&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">public_nat_ranges&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_ranges&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">public_nat_addresses&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_addresses&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">prefix&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">public_nat_prefixes&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Prefix --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;prefix&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="nb">range&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">public_nat_ranges&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Range --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">range&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;display&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">range&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">address&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">public_nat_addresses&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Address --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;address&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ephemeral_response_text&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">action_get_trusted_user_subnet&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;wireless_user_subnet&amp;#34;&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">trusted_user_prefixes&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_prefixes&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">trusted_user_ranges&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_ranges&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">trusted_user_addresses&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_addresses&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">prefix&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">trusted_user_prefixes&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Prefix --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;prefix&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="nb">range&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">trusted_user_ranges&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Range --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">range&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;display&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">range&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">address&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">trusted_user_addresses&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Address --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;address&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ephemeral_response_text&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">action_get_tagged_subnet&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">trusted_user_prefixes&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_prefixes&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">trusted_user_ranges&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_ranges&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">trusted_user_addresses&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_addresses&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tag&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">prefix&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">trusted_user_prefixes&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Prefix --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;prefix&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="nb">range&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">trusted_user_ranges&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Range --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">range&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;display&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">range&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">address&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">trusted_user_addresses&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Address --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;address&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ephemeral_response_text&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">action_get_more_info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">user_input&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">prefix_info&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_prefix_input&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">user_input&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">address_info&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_address_input&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">user_input&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">prefix_contains_info&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">netbox_return_prefix_contains_input&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">user_input&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># logger.info(user_input)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># logger.info(prefix_info)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># logger.info(address_info)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">prefix_info&lt;/span> &lt;span class="ow">is&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="kc">None&lt;/span> &lt;span class="ow">and&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix_info&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># ephemeral_response_text += &amp;#34;Prefix --&amp;gt; &amp;#34;+str(prefix_info[0].get(&amp;#39;prefix&amp;#39;))+&amp;#34; | Description --&amp;gt; &amp;#34;+str(prefix_info[0].get(&amp;#39;description&amp;#39;))+&amp;#34;\n&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">pprint&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">pformat&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix_info&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">indent&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">elif&lt;/span> &lt;span class="n">address_info&lt;/span> &lt;span class="ow">is&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="kc">None&lt;/span> &lt;span class="ow">and&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address_info&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># ephemeral_response_text += &amp;#34;Address --&amp;gt; &amp;#34;+str(address_info[0].get(&amp;#39;address&amp;#39;))+&amp;#34; | Description --&amp;gt; &amp;#34;+str(address_info[0].get(&amp;#39;description&amp;#39;))+&amp;#34;\n&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">pprint&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">pformat&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">address_info&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">indent&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">elif&lt;/span> &lt;span class="n">prefix_contains_info&lt;/span> &lt;span class="ow">is&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="kc">None&lt;/span> &lt;span class="ow">and&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">prefix_contains_info&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Specific entry not found but is contained in the following Prefixes:&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">item&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">prefix_contains_info&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s2">&amp;#34;Prefix --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">item&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;prefix&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34; | Description --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">item&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;description&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_text&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;No Information Found for This Entry --&amp;gt; &amp;#34;&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">user_input&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">ephemeral_response_text&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">lambda_handler&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">event&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">context&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># logger.info(event)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">decode_body&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">b64decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">event&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;body&amp;#39;&lt;/span>&lt;span class="p">]))&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;ascii&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">params&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">parse_qs&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">decode_body&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">payload_dict&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">loads&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">params&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;payload&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># logger.info(payload_dict)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># logger.info(type(payload_dict))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">token&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">payload_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;token&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">token&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="n">expected_token&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">logger&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;Request token (&lt;/span>&lt;span class="si">%s&lt;/span>&lt;span class="s2">) does not match expected&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">token&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">respond&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="ne">Exception&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Invalid request token&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># logger.info(payload_dict[&amp;#39;actions&amp;#39;][0][&amp;#39;value&amp;#39;])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">payload_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;actions&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s1">&amp;#39;value&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;public_egress&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_body&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;text&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">action_get_public_nat&lt;/span>&lt;span class="p">()}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">payload_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;actions&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s1">&amp;#39;value&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;wireless_user_subnet&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_body&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;text&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">action_get_trusted_user_subnet&lt;/span>&lt;span class="p">()}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">payload_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;actions&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s1">&amp;#39;value&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;vpn_subnet&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_body&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;text&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">action_get_tagged_subnet&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">payload_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;actions&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s1">&amp;#39;value&amp;#39;&lt;/span>&lt;span class="p">])}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">payload_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;actions&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s1">&amp;#39;action_id&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;plain_text_input-action&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">user_input&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">payload_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;actions&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s1">&amp;#39;value&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">try&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">user_input_validated&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">ipaddress&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">ip_interface&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">user_input&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">user_input_encoded&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">urllib&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">parse&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">quote&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">user_input&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">encode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;utf8&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_body&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;text&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">action_get_more_info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">user_input_encoded&lt;/span>&lt;span class="p">)}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">except&lt;/span> &lt;span class="ne">ValueError&lt;/span> &lt;span class="k">as&lt;/span> &lt;span class="n">e&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ephemeral_response_body&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;text&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;You entered an Unrecognized IP or Prefix - Please Enter in the Format of 10.10.10.1 or 10.10.10.0/24&amp;#34;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">send_msg&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">send_ephemeral_message&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">payload_dict&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;response_url&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">ephemeral_response_body&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">logger&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">send_msg&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">api_response&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;text&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;okay&amp;#34;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">respond&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">api_response&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Console:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/lambda-menu-action.png"
+width="1718"
+height="1319"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/lambda-menu-action_hu3d830751a0c36f61e0dfe07f2ee0f5b0_170477_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/lambda-menu-action_hu3d830751a0c36f61e0dfe07f2ee0f5b0_170477_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="130"
+data-flex-basis="312px"
+>&lt;/p>
+&lt;h4 id="encrypting-the-slack-token">Encrypting the Slack Token&lt;/h4>
+&lt;p>We can encrypt the Slack verification token using AWS KMS Encryption.
+To encrypt your token use the following steps:&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>Create or use an existing KMS Key - &lt;a class="link" href="http://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html" target="_blank" rel="noopener"
+>http://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Expand &amp;ldquo;Encryption configuration&amp;rdquo; and click the &amp;ldquo;Enable helpers for encryption in transit&amp;rdquo; checkbox&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Paste &amp;lt;COMMAND_TOKEN&amp;gt; into the kmsEncryptedToken environment variable and click &amp;ldquo;Encrypt&amp;rdquo;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Give your function&amp;rsquo;s role permission for the &lt;code>kms:Decrypt&lt;/code> action using the provided policy template&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;p>The encrypted token will look something like this:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/slack-ipam-helper/images/kms.png"
+width="919"
+height="777"
+srcset="https://kaonbytes.com/p/slack-ipam-helper/images/kms_huf0ea47ccaa61d773f9c67006ab736761_82627_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/slack-ipam-helper/images/kms_huf0ea47ccaa61d773f9c67006ab736761_82627_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="118"
+data-flex-basis="283px"
+>&lt;/p>
+&lt;h2 id="conclusion---next-steps">Conclusion - Next Steps?&lt;/h2>
+&lt;p>Future improvements for this app may include:&lt;/p>
+&lt;ul>
+&lt;li>Additional inputs, create drop down lists instead of buttons&lt;/li>
+&lt;li>Auto-responder (instead of requiring slash command input)&lt;/li>
+&lt;li>Move away from ephemeral messages to persistent messages&lt;/li>
+&lt;/ul>
+&lt;p>Thanks for following along, cheers!&lt;/p></description></item><item><title>Perimeter Scanner</title><link>https://kaonbytes.com/p/perimeter-scanner/</link><pubDate>Fri, 05 May 2023 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/perimeter-scanner/</guid><description>&lt;img src="https://kaonbytes.com/p/perimeter-scanner/images/perimeter-scanner-front.png" alt="Featured image of post Perimeter Scanner" />&lt;h2 id="about">About&lt;/h2>
 &lt;p>I put together a system of components to perform &lt;strong>automated perimeter scanning&lt;/strong> using readily available open source tools. Here is a guide on how you can do the same thing.&lt;/p>
 &lt;p>The system can accomplish the following:&lt;/p>
 &lt;ul>
