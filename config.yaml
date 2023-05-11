@@ -1,7 +1,7 @@
 baseurl: https://kaonbytes.com
 languageCode: en-us
 theme: hugo-theme-stack
-paginate: 5
+paginate: 10
 title: KaonBytes
 
 languages:
