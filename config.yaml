@@ -58,7 +58,7 @@ params:
         avatar:
             enabled: true
             local: true
-            src: img/kaon-profile-pic.jpg
+            src: img/profile-pic-jul-2023.jpeg
 
     article:
         math: false
