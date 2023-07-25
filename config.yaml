@@ -58,7 +58,7 @@ params:
         avatar:
             enabled: true
             local: true
-            src: img/profile-pic-jul-2023.jpeg
+            src: img/profile-pic-newest.jpg
 
     article:
         math: false
