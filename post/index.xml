@@ -1,4 +1,451 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on KaonBytes</title><link>https://kaonbytes.com/post/</link><description>Recent content in Posts on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 31 Aug 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/post/index.xml" rel="self" type="application/rss+xml"/><item><title>Building a DataCenter As Code with Arista CloudVision</title><link>https://kaonbytes.com/p/building-a-datacenter-as-code-with-arista-cloudvision/</link><pubDate>Thu, 31 Aug 2023 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/building-a-datacenter-as-code-with-arista-cloudvision/</guid><description>&lt;img src="https://kaonbytes.com/p/building-a-datacenter-as-code-with-arista-cloudvision/images/dcac-front.png" alt="Featured image of post Building a DataCenter As Code with Arista CloudVision" />&lt;h2 id="about">About&lt;/h2>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on KaonBytes</title><link>https://kaonbytes.com/post/</link><description>Recent content in Posts on KaonBytes</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Fri, 17 May 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://kaonbytes.com/post/index.xml" rel="self" type="application/rss+xml"/><item><title>A Case Study in Hybrid Cloud Network Design</title><link>https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/</link><pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/</guid><description>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/front2.png" alt="Featured image of post A Case Study in Hybrid Cloud Network Design" />&lt;h2 id="about">About&lt;/h2>
+&lt;p>A case study in network design for the &lt;strong>hybrid network engineer&lt;/strong>. A walkthrough of the year-long journey to interconnect &lt;strong>public cloud workloads&lt;/strong> from all three major CSPs (&lt;a class="link" href="https://azure.microsoft.com/en-us" target="_blank" rel="noopener"
+>Azure&lt;/a>, &lt;a class="link" href="https://aws.amazon.com/" target="_blank" rel="noopener"
+>AWS&lt;/a>, &lt;a class="link" href="https://cloud.google.com/?hl=en" target="_blank" rel="noopener"
+>GCP&lt;/a>) and on-premises &lt;strong>Enterprise Networks&lt;/strong> to provide a robust and highly available solution for the application teams. I will discuss the architectural strategy, lessons learned, pitfalls and wins of the &lt;strong>overall solution&lt;/strong>.&lt;/p>
+&lt;h2 id="problem-statement">Problem Statement&lt;/h2>
+&lt;p>In many organizations, there may exist scenarios where some &lt;strong>applications&lt;/strong> are built in one cloud provider (such as GCP) and another application or supporting system run by a different team is built in a different environment (such as AWS). This may be due to specific &lt;strong>cloud offerings&lt;/strong> of one provider over another, developer preferences/experience, historical reasons, cost optimization etc. The &lt;strong>why&lt;/strong> doesn&amp;rsquo;t really matter - but when these workloads want to communicate - now this becomes a &lt;strong>connectivity puzzle&lt;/strong>.&lt;/p>
+&lt;p>The answer for many teams is to route this traffic over the &lt;strong>public internet&lt;/strong>. Like so:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/f.png"
+width="3525"
+height="1238"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/f_hua4742719b4fc54e9723e3c78390010a6_54398_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/f_hua4742719b4fc54e9723e3c78390010a6_54398_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="284"
+data-flex-basis="683px"
+>&lt;/p>
+&lt;p>This solution works and for most orgs thats usually &lt;strong>good enough&lt;/strong>. There are some quick fixes we could implement instead of the above solution, such as to create &lt;strong>site-to-site VPN tunnels&lt;/strong> or more recently CSPs are now offering cloud-to-cloud interconnects. However, when you are dealing with dozens of &lt;strong>cloud accounts&lt;/strong> (tenants), large amounts of &lt;strong>traffic&lt;/strong> and on-prem &lt;strong>data center&lt;/strong> traffic these fixes may not scale. Let&amp;rsquo;s step back and take a look at the whole picture.&lt;/p>
+&lt;p>Some key &lt;strong>info&lt;/strong> to take note of:&lt;/p>
+&lt;ul>
+&lt;li>Most of the cloud-to-cloud traffic is happening in the &lt;strong>US-East&lt;/strong> region. We can focus our efforts here.&lt;/li>
+&lt;li>The traffic pattern rates will not exceed &lt;strong>10Gbps&lt;/strong> (for now :D)&lt;/li>
+&lt;/ul>
+&lt;p>Can we &lt;strong>architect&lt;/strong> a solution that:&lt;/p>
+&lt;ol>
+&lt;li>Decreases cloud egress &lt;strong>costs&lt;/strong>&lt;/li>
+&lt;li>Improves &lt;strong>security posture&lt;/strong> by reducing the amount of public endpoints that don&amp;rsquo;t need to be exposed&lt;/li>
+&lt;li>Integrates with the existing on premises &lt;strong>data center network&lt;/strong>&lt;/li>
+&lt;li>Improves network &lt;strong>latency&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;p>While still mainting the performance, reliability and &lt;strong>agility&lt;/strong> of hosting workloads in the cloud&amp;hellip;&lt;/p>
+&lt;h2 id="strategy---weighing-the-options">Strategy - Weighing the Options&lt;/h2>
+&lt;h3 id="option-1---hairpin">Option 1 - Hairpin&lt;/h3>
+&lt;p>In my case, I have a production data center already built out and running in &lt;strong>New York&lt;/strong>. I could leverage the existing Headquarters data center to provision new circuits to each Cloud Provider and integrate them into the existing &lt;strong>WAN&lt;/strong>. Utilize &lt;strong>BGP&lt;/strong> routing to bounce traffic back and forth as needed.&lt;/p>
+&lt;p>Like So:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/g.png"
+width="1069"
+height="1088"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/g_hu36a76c68b8d930323f835840566196d1_18438_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/g_hu36a76c68b8d930323f835840566196d1_18438_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="98"
+data-flex-basis="235px"
+>&lt;/p>
+&lt;h4 id="pros">Pros&lt;/h4>
+&lt;ul>
+&lt;li>Relatively &lt;strong>short lead time&lt;/strong> to complete this option.&lt;/li>
+&lt;li>The &lt;strong>network&lt;/strong> already exists (minus the new circuits)&lt;/li>
+&lt;/ul>
+&lt;h4 id="cons">Cons&lt;/h4>
+&lt;ul>
+&lt;li>&lt;strong>Hair-pinning&lt;/strong> traffic from US-East1 (Virginia) to NY back to Virginia&lt;/li>
+&lt;li>May require hardware refresh depending on &lt;strong>speeds/feeds&lt;/strong> available of current switches in my data center. Additional lead-time to buy new gear and set it up.&lt;/li>
+&lt;li>Introduces on-prem &lt;strong>SLA factors&lt;/strong> (network uptime, upgrades, power work, maintenance windows etc) to &lt;strong>cloud-to-cloud&lt;/strong> apps.&lt;/li>
+&lt;/ul>
+&lt;h3 id="option-2---greenfield">Option 2 - Greenfield&lt;/h3>
+&lt;p>Rent out space at two co-location providers near Ashburn. Purchase new layer3 switches/routers and order new circuits for the connections.
+i.e. &lt;strong>Build it all yourself&lt;/strong>&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/c.png"
+width="1614"
+height="1251"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/c_hu258ccb9f6138a2ce8149908049aec0fb_30412_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/c_hu258ccb9f6138a2ce8149908049aec0fb_30412_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="129"
+data-flex-basis="309px"
+>&lt;/p>
+&lt;h4 id="pros-1">Pros&lt;/h4>
+&lt;ul>
+&lt;li>As a network engineer who loves new toys this would have been great, a &lt;strong>new greenfield deployment&lt;/strong>&lt;/li>
+&lt;li>Full &lt;strong>control&lt;/strong> of the environment&lt;/li>
+&lt;/ul>
+&lt;h4 id="cons-1">Cons&lt;/h4>
+&lt;ul>
+&lt;li>New Colo Vendor research, approval and onboarding &lt;strong>process&lt;/strong> would take some time&lt;/li>
+&lt;li>Upfront &lt;strong>capital&lt;/strong> costs&lt;/li>
+&lt;li>Vendor lead-time on new switches was still high at the time of this design | 1 year+ (post-covid &lt;strong>supply chain issues&lt;/strong>)&lt;/li>
+&lt;/ul>
+&lt;h3 id="option-3---cross-cloud">Option 3 - Cross Cloud&lt;/h3>
+&lt;p>Utilize the new &lt;strong>cross cloud&lt;/strong> interconnect services provided by GCP&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/d.png"
+width="1614"
+height="563"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/d_hu7d3b1ab6d507c9a77969a8836705d17c_11133_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/d_hu7d3b1ab6d507c9a77969a8836705d17c_11133_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="286"
+data-flex-basis="688px"
+>&lt;/p>
+&lt;h4 id="pros-2">Pros&lt;/h4>
+&lt;ul>
+&lt;li>Cloud &lt;strong>Native&lt;/strong> Solution&lt;/li>
+&lt;li>Simple to setup and &lt;strong>quickly&lt;/strong> implement&lt;/li>
+&lt;/ul>
+&lt;h4 id="cons-2">Cons&lt;/h4>
+&lt;ul>
+&lt;li>Good for GCP to a CSP but doesn&amp;rsquo;t help with other &lt;strong>traffic patterns&lt;/strong> for different cloud providers or on-prem workloads&lt;/li>
+&lt;li>Cost savings is not &lt;strong>maximized&lt;/strong>&lt;/li>
+&lt;/ul>
+&lt;h3 id="option-4---partner-interconnect">Option 4 - Partner Interconnect&lt;/h3>
+&lt;p>Onboard a &lt;strong>3rd party interconnect&lt;/strong> vendor to essentially “rent a router” in Virginia at a monthly cost. Multiple companies exist who provide this &lt;strong>service&lt;/strong> such as Megaport, Equinix, PacketFabric and &lt;a class="link" href="https://cloud.google.com/network-connectivity/docs/interconnect/concepts/service-providers" target="_blank" rel="noopener"
+>others&lt;/a>.&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/h.png"
+width="1575"
+height="1168"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/h_hu0caa2ee5970f394305fe071ef88a79de_28673_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/h_hu0caa2ee5970f394305fe071ef88a79de_28673_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="134"
+data-flex-basis="323px"
+>&lt;/p>
+&lt;h4 id="pros-3">Pros&lt;/h4>
+&lt;ul>
+&lt;li>&lt;strong>Flexibility&lt;/strong> in choosing regions or zones to deploy partner interconnect routers as needed&lt;/li>
+&lt;li>Ephemeral solution that could be &lt;strong>scaled up/down&lt;/strong> quickly&lt;/li>
+&lt;li>Easy to compare monthly costs vs &lt;strong>monthly savings&lt;/strong>&lt;/li>
+&lt;li>Follows the overall &lt;strong>cloud-first&lt;/strong> mindset of my technology organization&lt;/li>
+&lt;/ul>
+&lt;h4 id="cons-3">Cons&lt;/h4>
+&lt;ul>
+&lt;li>&lt;strong>New vendor&lt;/strong> research, onboarding and learning&lt;/li>
+&lt;li>Losing some &lt;strong>control&lt;/strong> of the network to another party - i.e nerd knobs, visibility&lt;/li>
+&lt;li>Introducing a new vendor into your critical path of traffic - high availability &lt;strong>system design&lt;/strong> is crucial&lt;/li>
+&lt;/ul>
+&lt;h2 id="design-decisions">Design Decisions&lt;/h2>
+&lt;p>We decided on &lt;strong>Option 4&lt;/strong>. Using a 3rd party interconnect provider would give us the most flexibility and allow us the option to &lt;strong>dynamically&lt;/strong> spin up and down resources/circuits as needed.
+After a few weeks of going back and forth with a couple of &lt;strong>providers&lt;/strong>, we chose one of them based on community feedback, price and availability of resources.&lt;/p>
+&lt;p>Additionally, the architecture should:&lt;/p>
+&lt;ul>
+&lt;li>Follow the concept of &lt;strong>least privileged access&lt;/strong> - meaning don&amp;rsquo;t open up the routing for &lt;strong>ALL&lt;/strong> cloud teams to be able to talk to &lt;strong>ALL&lt;/strong> other cloud accounts in perpetuity. Narrow the scope down for specific &lt;strong>account-to-account&lt;/strong> workloads.&lt;/li>
+&lt;li>Implement &lt;strong>99.99% availability&lt;/strong> for each cloud provider interconnect (following each CSP published best practice guides).&lt;/li>
+&lt;li>Use &lt;strong>devops principles&lt;/strong> to spin up resources as code via Terraform, Ansible, Python APIs etc with well defined pipelines. Make the work visible for the entire tech organization and limit institutional knowledge.&lt;/li>
+&lt;/ul>
+&lt;h3 id="gcp-architecture">GCP Architecture&lt;/h3>
+&lt;ul>
+&lt;li>Create a &lt;strong>hub and spoke&lt;/strong> type model&lt;/li>
+&lt;li>Centralized &lt;strong>networking hub&lt;/strong> project to host the GCP Routers + interconnects to partner routers&lt;/li>
+&lt;li>Spoke projects will &lt;strong>VPC peer&lt;/strong> to hub project for access as needed&lt;/li>
+&lt;li>Following the &lt;a class="link" href="https://cloud.google.com/network-connectivity/docs/interconnect/tutorials/partner-creating-9999-availability" target="_blank" rel="noopener"
+>GCP Best Practices guide&lt;/a>, we can design an architecture as shown below:&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/j.png"
+width="5663"
+height="2588"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/j_hubf78e894bd9e11b886ecbab040456921_276547_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/j_hubf78e894bd9e11b886ecbab040456921_276547_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="218"
+data-flex-basis="525px"
+>&lt;/p>
+&lt;h3 id="aws-architecture">AWS Architecture&lt;/h3>
+&lt;ul>
+&lt;li>Create a centralized &lt;strong>networking account&lt;/strong> to host an AWS Transit Gateway which attaches to other spoke accounts.&lt;/li>
+&lt;li>Following the &lt;a class="link" href="https://docs.aws.amazon.com/directconnect/latest/UserGuide/high_resiliency.html" target="_blank" rel="noopener"
+>AWS High Resiliency Guide&lt;/a>, it should look something like this:&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/k.png"
+width="4313"
+height="2550"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/k_hu9f17a32d6847471562998032093e4eba_249672_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/k_hu9f17a32d6847471562998032093e4eba_249672_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="169"
+data-flex-basis="405px"
+>&lt;/p>
+&lt;h3 id="azure-architecture">Azure Architecture&lt;/h3>
+&lt;ul>
+&lt;li>Follow Azure Hub-Spoke network topology for peering &lt;a class="link" href="https://learn.microsoft.com/en-us/azure/architecture/networking/architecture/hub-spoke?tabs=cli" target="_blank" rel="noopener"
+>VNETs together&lt;/a>&lt;/li>
+&lt;li>Design &lt;a class="link" href="https://learn.microsoft.com/en-us/azure/expressroute/designing-for-high-availability-with-expressroute" target="_blank" rel="noopener"
+>high availability express route&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/l.png"
+width="5599"
+height="1800"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/l_huad54ff3ce60de5f1bf68ef92f33664b8_193677_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/l_huad54ff3ce60de5f1bf68ef92f33664b8_193677_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="311"
+data-flex-basis="746px"
+>&lt;/p>
+&lt;h3 id="partner-router-architecture">Partner Router Architecture&lt;/h3>
+&lt;ul>
+&lt;li>Following high availability patterns, create &lt;strong>two virtual routers&lt;/strong> in two different availability zones in Virginia.&lt;/li>
+&lt;li>Create &lt;strong>virtual cross connects&lt;/strong> for each desired CSP path&lt;/li>
+&lt;li>Provision new on-prem &lt;strong>circuits&lt;/strong> (physical paths) to partner locations&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/m.png"
+width="2025"
+height="2550"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/m_huceba59e1d29dcc0287631f91e843cc49_59375_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/m_huceba59e1d29dcc0287631f91e843cc49_59375_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="79"
+data-flex-basis="190px"
+>&lt;/p>
+&lt;h2 id="implementation">Implementation&lt;/h2>
+&lt;h3 id="challenges">Challenges&lt;/h3>
+&lt;p>As with most projects, you can &lt;strong>plan&lt;/strong> and design all day long. But once you start &lt;strong>building&lt;/strong>, something unexpected always comes up. We ran into some &lt;strong>challenges&lt;/strong> along the way but were able to find solutions and push through. Here&amp;rsquo;s some key ones&amp;hellip;&lt;/p>
+&lt;h4 id="gcp-network-peering">GCP Network Peering&lt;/h4>
+&lt;p>A &lt;a class="link" href="https://cloud.google.com/vpc/docs/vpc-peering" target="_blank" rel="noopener"
+>key requirement&lt;/a> for GCP Network Peering is that IP network space cannot overlap. When I originally audited the candidate GCP accounts to peer, I only looked at the &lt;strong>primary ranges&lt;/strong> - I took note that there were no collisions and moved ahead.&lt;/p>
+&lt;p>However, when it came time to actually peer the networks we immediately found a problem. There were some &lt;strong>secondary ranges&lt;/strong> which shared similar space in the &lt;code>100.X.X.X&lt;/code> space. These secondary ranges are used by the project&amp;rsquo;s &lt;strong>kubernetes&lt;/strong> clusters.&lt;/p>
+&lt;p>Some possible solutions to fix this:&lt;/p>
+&lt;ol>
+&lt;li>Re-IP these secondary ranges - wasn&amp;rsquo;t a fan of this option as it would cause more work and intrusion on the &lt;strong>application owners&lt;/strong> side.&lt;/li>
+&lt;li>&lt;strong>Implement&lt;/strong> Google&amp;rsquo;s New Product offering called &lt;a class="link" href="https://cloud.google.com/network-connectivity-center?hl=en" target="_blank" rel="noopener"
+>Network Connectivity Center&lt;/a> (it was in Beta at the time)
+&lt;ul>
+&lt;li>The key feature that could help here was the ability to &lt;strong>prefix filter&lt;/strong> routes from peering&lt;/li>
+&lt;li>Unfortunately, even with NCC enabled we quickly ran into &lt;a class="link" href="https://cloud.google.com/network-connectivity/docs/network-connectivity-center/concepts/vpc-spokes-overview" target="_blank" rel="noopener"
+>another blocker&lt;/a> &lt;code>IPv4 static and dynamic routes exchange across VPC spokes are not supported.&lt;/code>&lt;/li>
+&lt;li>This meant we could not &lt;strong>exchange&lt;/strong> dynamically learned routes from the partner interconnect to the spoke accounts. This was a no-go.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ol>
+&lt;p>With NCC Peering off the table, we went back to VPC Peering. But this time the decision was to select a few &lt;strong>high value&lt;/strong> GCP Projects that made up the majority of the traffic load. Re-IP those secondary kubernetes &lt;strong>ranges&lt;/strong> (if needed) and move on.&lt;/p>
+&lt;p>Another &lt;strong>issue&lt;/strong> that arose: Google Cloud Routers connected to the interconnects would not automatically export the &lt;a class="link" href="https://cloud.google.com/vpc/docs/vpc-peering#custom-route-exchange" target="_blank" rel="noopener"
+>learned VPC Peering routes&lt;/a>:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/q.png"
+width="1088"
+height="440"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/q_hu68c57a763b01c83f0d0100bdc61c0c94_157946_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/q_hu68c57a763b01c83f0d0100bdc61c0c94_157946_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="247"
+data-flex-basis="593px"
+>&lt;/p>
+&lt;p>To solve this &lt;strong>problem&lt;/strong>, we have to install custom advertisements on the google cloud routers (i.e. maintain an &lt;strong>IP Prefix List&lt;/strong>). This adds complexity to the project, but could be solved &lt;strong>programmatically&lt;/strong> during our pipeline build which will be shared later on in this post.&lt;/p>
+&lt;h4 id="aws---account-to-account-routing-options">AWS - Account-to-Account Routing Options&lt;/h4>
+&lt;p>The original design assumed to use the existing &lt;strong>Transit Gateway&lt;/strong> connections to route the newly introduced traffic to each account. However, after performing a cost reduction &lt;a class="link" href="https://calculator.aws/#/" target="_blank" rel="noopener"
+>analysis&lt;/a> we realized that the Transit Gateway &lt;strong>transfer costs&lt;/strong> were still high, making the effort of the entire project less appealing. Another option would be to create new connections with Virtual Private Gateways (&lt;strong>VGW attachments&lt;/strong>).&lt;/p>
+&lt;p>As an example exercise, if we assume &lt;strong>1000TB&lt;/strong> of monthly data transfers:&lt;/p>
+&lt;ul>
+&lt;li>Using the &lt;strong>TGW&lt;/strong> architecture would save up to &lt;strong>30%&lt;/strong> of data transfer costs.&lt;/li>
+&lt;li>Using the &lt;strong>VGW&lt;/strong> architecture would save up to &lt;strong>60%&lt;/strong> of data transfer costs.&lt;/li>
+&lt;/ul>
+&lt;p>So the tradeoff we made was to select a few &lt;strong>heavy hitter&lt;/strong> accounts to peer directly with the hub network account using a &lt;strong>VGW Architecture&lt;/strong>.&lt;/p>
+&lt;p>To do this, I needed to create dedicated VGWs in each &lt;strong>heavy hitter&lt;/strong> account and attach it to a new DXGW instead of using the existing Transit Gateway &lt;strong>architecture&lt;/strong>. For the &lt;strong>rest of the accounts&lt;/strong> connectivity would still be established via the TGW.&lt;/p>
+&lt;p>Additionally, this meant we had to create 2 additional &lt;strong>virtual cross connects&lt;/strong> to our partner routers and also pay close attention to the hard limit quotas of &lt;a class="link" href="https://docs.aws.amazon.com/directconnect/latest/UserGuide/limits.html" target="_blank" rel="noopener"
+>AWS Direct Connect&lt;/a>. Although the cost of additional cross connects doubles our intended budget, it still made sense&lt;/p>
+&lt;p>The new AWS &lt;strong>Architecture&lt;/strong> would be as follows:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/n.png"
+width="4388"
+height="2588"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/n_hua852a7e80331dd5f0bf274031099b9d0_316918_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/n_hua852a7e80331dd5f0bf274031099b9d0_316918_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="169"
+data-flex-basis="406px"
+>&lt;/p>
+&lt;h4 id="azure-quirks">Azure Quirks&lt;/h4>
+&lt;p>Prior to this project, I had almost no &lt;strong>experience&lt;/strong> building anything in Azure. The interface felt foreign to me and the &lt;strong>naming conventions and iconography&lt;/strong> also took some time to get used to&amp;hellip;but in general, there were no major hangups in &lt;strong>Azure&lt;/strong> except for one issue:&lt;/p>
+&lt;ul>
+&lt;li>Prior to this work, an Azure &lt;strong>site-to-site VPN&lt;/strong> had already been setup in one VNET to an on-prem resource.&lt;/li>
+&lt;li>Due to this, I was unable to peer this azure VNET to the new &lt;strong>hub vnet&lt;/strong>&lt;/li>
+&lt;li>To work around this problem, we had to relocate the &lt;strong>site-to-site VPN&lt;/strong> to the hub vnet and pay close attention to the routing. For this specific case I used &lt;strong>less specific routes&lt;/strong> to &lt;a class="link" href="https://learn.microsoft.com/en-us/azure/expressroute/designing-for-disaster-recovery-with-expressroute-privatepeering" target="_blank" rel="noopener"
+>prefer&lt;/a> the express route connection over the existing site-to-site VPN&lt;/li>
+&lt;/ul>
+&lt;h4 id="differences-of-networking-concepts-across-csps">Differences of Networking Concepts across CSPs&lt;/h4>
+&lt;p>In general understanding the &lt;strong>different concepts&lt;/strong> of VPCs vs VNETs - Projects vs Accounts vs Subscriptions - Global route tables vs regional route tables etc&amp;hellip; could be a &lt;strong>whole book&lt;/strong> (that I would not be qualified to write). One example that comes to mind which took me by surprise:&lt;/p>
+&lt;ul>
+&lt;li>In GCP - US &lt;strong>East1&lt;/strong> is in South Carolina but in AWS US East1 is in &lt;strong>Virginia&lt;/strong>. Something to keep in mind when thinking about traffic latency and regional disaster recovery scenarios.&lt;/li>
+&lt;/ul>
+&lt;h3 id="high-availability">High Availability&lt;/h3>
+&lt;p>As I mentioned previously in the &lt;strong>design&lt;/strong> section, implementing a highly available solution is crucial. We don&amp;rsquo;t want to introduce additional &lt;strong>failure events&lt;/strong> that do not typically occurr in cloud deployments (i.e. limit the blame on the network :D )&lt;/p>
+&lt;p>To Summarize the best practice documentation from each provider environment:&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>In &lt;a class="link" href="https://cloud.google.com/network-connectivity/docs/interconnect/tutorials/partner-creating-9999-availability" target="_blank" rel="noopener"
+>GCP&lt;/a>, high availability requires &lt;strong>4&lt;/strong> partner interconnects across &lt;strong>2&lt;/strong> Google Cloud Routers in &lt;strong>2&lt;/strong> different regions&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>In &lt;a class="link" href="https://docs.aws.amazon.com/directconnect/latest/UserGuide/high_resiliency.html" target="_blank" rel="noopener"
+>AWS&lt;/a>, high resiliency can be achieved with &lt;strong>2&lt;/strong> single connections in &lt;strong>2&lt;/strong> different direct connect locations&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://learn.microsoft.com/en-us/azure/expressroute/designing-for-high-availability-with-expressroute" target="_blank" rel="noopener"
+>Azure ExpressRoutes&lt;/a> requires &lt;strong>2&lt;/strong> express route circuits in zone redundant virtual gateways&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>3rd Party Interconnect Routers require &lt;strong>2&lt;/strong> virtual routers and the virtual cross connects should be in distinct &lt;strong>A/B Availability Zones&lt;/strong>&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h3 id="routing-decisions">Routing Decisions&lt;/h3>
+&lt;p>This is where &lt;strong>network engineering&lt;/strong> chops matter. The standard routing protocol for all Cloud Service Providers is &lt;a class="link" href="https://datatracker.ietf.org/doc/html/rfc4271" target="_blank" rel="noopener"
+>Border Gateway Protocol - BGP&lt;/a>&lt;/p>
+&lt;p>What are some BGP decisions we have to make to design a &lt;strong>reliable and fast network&lt;/strong>?&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>Use &lt;a class="link" href="https://datatracker.ietf.org/doc/html/rfc5880" target="_blank" rel="noopener"
+>Bidirectional Forwarding Detection - BFD&lt;/a> for fast BGP &lt;strong>Failover&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Keep in mind that different CSPs may have different &lt;strong>BFD supported values&lt;/strong>, for example:
+&lt;ul>
+&lt;li>In GCP we &lt;strong>must&lt;/strong> use the values:
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">Transmit Interval - 1000 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Receive Interval - 1000 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Multiplier - 5
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
+&lt;li>However, AWS supports faster values:
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">Transmit Interval - 300 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Receive Interval - 300 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Multiplier - 3
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>When I performed failover testing of these circuits, it took almost &lt;strong>5 seconds&lt;/strong> for the GCP traffic to recover as opposed to the AWS failure took under &lt;strong>1 second&lt;/strong> to recover.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>Understand Route Manipulations and Priorities in Different Cloud &lt;strong>Environments&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>For example, in AWS its best practice to &lt;strong>influence&lt;/strong> traffic using &lt;a class="link" href="https://aws.amazon.com/blogs/networking-and-content-delivery/influencing-traffic-over-hybrid-networks-using-longest-prefix-match/" target="_blank" rel="noopener"
+>longest prefix match&lt;/a>&lt;/li>
+&lt;li>We can also influence routing &lt;strong>policies&lt;/strong> with &lt;a class="link" href="https://docs.aws.amazon.com/directconnect/latest/UserGuide/routing-and-bgp.html" target="_blank" rel="noopener"
+>BGP Communities&lt;/a>&lt;/li>
+&lt;li>Additionally, using AS PATH Prepending or MED values is another &lt;strong>option&lt;/strong>&lt;/li>
+&lt;li>Also keep in mind, Route Priority of &lt;a class="link" href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html#route-table-priority-propagated-routes" target="_blank" rel="noopener"
+>Propagated Routes&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>Should we use Equal Cost Multipathing (&lt;strong>i.e. ECMP Load Sharing&lt;/strong>) across multiple links?&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;ul>
+&lt;li>
+&lt;p>Possible &lt;strong>negatives&lt;/strong> of ECMP:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Non-deterministic&lt;/strong> route paths - hard to &amp;ldquo;know&amp;rdquo; which way your traffic is flowing at all times.&lt;/li>
+&lt;li>&lt;strong>Gray outages&lt;/strong> where one path is not working optimally and causes intermittent issues making it hard to troubleshoot.&lt;/li>
+&lt;li>If a &lt;strong>stateful firewall&lt;/strong> is in line inspecting traffic and return routes take a different path, it may get dropped&lt;/li>
+&lt;li>Load balancing across different &lt;strong>geographical locations&lt;/strong> may cause latency variations&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>Benefits&lt;/strong>:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Maximize&lt;/strong> your provisioned circuits. i.e more available &lt;strong>bandwidth&lt;/strong>&lt;/li>
+&lt;li>More resilient to &lt;strong>failover&lt;/strong> - if a link fails all of your traffic does not go down waiting for BFD to kick in.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>I decided to use ECMP - but I understand why other&amp;rsquo;s may choose not to.&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h3 id="visibility-and-operations">Visibility and Operations&lt;/h3>
+&lt;p>In my view, a project is not &lt;strong>done&lt;/strong> just because traffic is flowing from point A to point B. I believe it is just as important to devote equal planning, time and energy towards &lt;strong>supporting systems&lt;/strong>&lt;/p>
+&lt;h4 id="observability">Observability&lt;/h4>
+&lt;p>How do we &lt;strong>monitor&lt;/strong> these new partner virtual routers? The typical network construct of pointing your &lt;strong>SNMP poller&lt;/strong> to a router and graphing bandwidth does not apply here.&lt;/p>
+&lt;ul>
+&lt;li>Answer: Use &lt;strong>APIs&lt;/strong> to gather info and relay it back to a centralized observability platform. In my case, our tech org has standardized on a single &lt;strong>SaaS observability platform&lt;/strong> so I wrote some glue scripts to do this. I will share below.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;a class="link" href="https://github.com/kaon1/python-misc/blob/master/observability-metrics/megaport-status-checks-for-resources.py" target="_blank" rel="noopener"
+>Python Script to Send Metrics&lt;/a>&lt;/p>
+&lt;p>The &lt;strong>script&lt;/strong> does the following:&lt;/p>
+&lt;ol>
+&lt;li>Gathers a &lt;strong>status check&lt;/strong> of the Virtual Routers and Cross Connects&lt;/li>
+&lt;li>Sends the status to the observability platform &lt;strong>periodically&lt;/strong>&lt;/li>
+&lt;li>In the platform we create &lt;strong>dashboards and monitors&lt;/strong> to alert on interesting values or missing data (i.e a resource is no longer reporting)&lt;/li>
+&lt;/ol>
+&lt;ul>
+&lt;li>Another script &lt;a class="link" href="https://github.com/kaon1/python-misc/blob/master/observability-metrics/megaport-mcr-bw-to-dd.py" target="_blank" rel="noopener"
+>here polls bandwidth usage every 5 minutes&lt;/a> and sends the metric up to the observability platform for &lt;strong>graphing&lt;/strong>.&lt;/li>
+&lt;/ul>
+&lt;p>All of this info &lt;strong>could&lt;/strong> be gathered directly from the Cloud Provider&amp;rsquo;s portal - an operator would just need to login and click around to find it. But, in keeping with the principles listed above of &lt;strong>limiting institutional knowledge&lt;/strong> its important to make this data available and visible to all teams within the organization.&lt;/p>
+&lt;h4 id="testing">Testing&lt;/h4>
+&lt;p>It is important to establish baseline tests of &amp;ldquo;what the network &lt;strong>should&lt;/strong> look like at any given time&amp;rdquo; - so that if something goes wrong we have &lt;strong>historical data&lt;/strong> to refer back to.&lt;/p>
+&lt;p>We should:&lt;/p>
+&lt;ul>
+&lt;li>Use &lt;strong>synthetic testing&lt;/strong> to measure ICMP latency, HTTP Response Time, Packet Loss and Hop Count between two endpoints on each end of the &lt;strong>dedicated private links&lt;/strong>&lt;/li>
+&lt;li>Generate traffic using &lt;strong>iperf&lt;/strong> across the links and &lt;strong>measure performance&lt;/strong>&lt;/li>
+&lt;li>There&amp;rsquo;s a handy &lt;a class="link" href="https://iperf3-python.readthedocs.io/en/latest/" target="_blank" rel="noopener"
+>iperf3 library&lt;/a> which can be used to script these tests and send the results up to your &lt;strong>observability platform&lt;/strong>.&lt;/li>
+&lt;/ul>
+&lt;p>Here&amp;rsquo;s an &lt;a class="link" href="https://github.com/kaon1/python-misc/blob/master/observability-metrics/iperf-megaport-dd.py" target="_blank" rel="noopener"
+>example script&lt;/a> which takes in some &lt;strong>user input&lt;/strong> (like iperf destination, number of streams to send, duration of test and bandwidth) and sends the metrics up for graphing.&lt;/p>
+&lt;p>An example way to run this script would be with a 5 minute &lt;strong>cronjob&lt;/strong> from a server in each Cloud Environment.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="o">*/&lt;/span>&lt;span class="mi">5&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">root&lt;/span> &lt;span class="n">python3&lt;/span> &lt;span class="n">iperf&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">dd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">py&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">direction&lt;/span> &lt;span class="n">upload&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">dest_name&lt;/span> &lt;span class="n">gcpuseast1&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">dest_ip&lt;/span> &lt;span class="mf">10.&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">x&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">dest_port&lt;/span> &lt;span class="mi">5201&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">numofstreams&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">duration&lt;/span> &lt;span class="mi">30&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">bandwidth&lt;/span> &lt;span class="mi">1000000000&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*/&lt;/span>&lt;span class="mi">5&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">root&lt;/span> &lt;span class="n">python3&lt;/span> &lt;span class="n">iperf&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">dd&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">py&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">direction&lt;/span> &lt;span class="n">upload&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">dest_name&lt;/span> &lt;span class="n">gcpuscentral1&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">dest_ip&lt;/span> &lt;span class="mf">10.&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">x&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">dest_port&lt;/span> &lt;span class="mi">5203&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">numofstreams&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">duration&lt;/span> &lt;span class="mi">30&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="n">bandwidth&lt;/span> &lt;span class="mi">1000000000&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="pipelines-for-deploying-changes">Pipelines for Deploying Changes&lt;/h4>
+&lt;p>As I mentioned in the &lt;strong>design&lt;/strong> portion of this post, it is important to use devops principles wherever possible for provisioning and changing these resources. I have multiple blog posts about creating &lt;strong>terraform pipelines&lt;/strong>, so I won&amp;rsquo;t go into detail here. But the general idea is this:&lt;/p>
+&lt;ol>
+&lt;li>Create a &lt;strong>shared repository&lt;/strong> for these new cloud resources - give access to other teams to suggest changes (via PRs)&lt;/li>
+&lt;li>Build &lt;strong>pipelines&lt;/strong> that perform dry runs or plans of changes&lt;/li>
+&lt;li>Execute new changes on &lt;strong>merges to main&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;p>Here is an &lt;a class="link" href="https://github.com/kaon1/python-misc/blob/master/scripts/aws-vgw-to-dxgw-example.tf" target="_blank" rel="noopener"
+>example terraform file&lt;/a> that can be installed on a per account basis to create the VGWs and also attach them to the DXGW.&lt;/p>
+&lt;p>&lt;strong>Why&lt;/strong> is this important?&lt;/p>
+&lt;ul>
+&lt;li>Provides &lt;strong>visibility&lt;/strong> to app teams of the network connectivity (its no longer just a black box)&lt;/li>
+&lt;li>Tracks changes, self &lt;strong>documents&lt;/strong> the network&lt;/li>
+&lt;li>Makes it easier to maintain complex, repeatable objects such as &lt;strong>IP Prefix Lists&lt;/strong>&lt;/li>
+&lt;/ul>
+&lt;p>As mentioned above, we have to use IP Prefix lists on the GCRs, but Prefix Lists also give you more &lt;strong>control&lt;/strong> of the routing and allows the ability to enforce the concept of &lt;strong>least access&lt;/strong> (explicit permit). But these prefix lists can get &lt;strong>complex&lt;/strong> with multiple virtual routers and cross connects. One way to keep these in &lt;strong>sync&lt;/strong> is with a a &lt;a class="link" href="https://github.com/kaon1/python-misc/blob/master/scripts/prefix-sync-megaport.py" target="_blank" rel="noopener"
+>pipeline script&lt;/a>.&lt;/p>
+&lt;p>The script eases the onboarding process of a new &lt;strong>workload/account&lt;/strong>. If a new workload is onboarding to this &lt;strong>architecture&lt;/strong>, we update the shared repository and add the &lt;strong>new prefixes&lt;/strong>. The &lt;strong>pipeline&lt;/strong> runs and updates the necessary prefix lists to allow communication.&lt;/p>
+&lt;h2 id="overall-wins">Overall Wins&lt;/h2>
+&lt;h3 id="lowering-monthly-cloud-traffic-costs">Lowering Monthly Cloud Traffic Costs&lt;/h3>
+&lt;ul>
+&lt;li>It takes a &lt;strong>PHD&lt;/strong> to understand the complexity of cloud costs - and I do not have one. But I have been told its &lt;strong>working&lt;/strong>&amp;hellip;so that&amp;rsquo;s good enough for me :D&lt;/li>
+&lt;/ul>
+&lt;h3 id="improved-security-posture-and-private-connectivity">Improved Security Posture and Private Connectivity&lt;/h3>
+&lt;ul>
+&lt;li>Able to reduce the amount of &lt;strong>public endpoints&lt;/strong> which do not need to be exposed&lt;/li>
+&lt;li>More &lt;strong>control&lt;/strong> of cloud account routing&lt;/li>
+&lt;/ul>
+&lt;h3 id="better-network-performance">Better Network Performance&lt;/h3>
+&lt;ul>
+&lt;li>&lt;strong>ICMP&lt;/strong> Latency Improvement: Public ~21 ms | &lt;strong>Private&lt;/strong> ~13 ms&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/o.png"
+width="1635"
+height="551"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/o_huff130c524d64d0dd95b135e7047060b5_78413_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/o_huff130c524d64d0dd95b135e7047060b5_78413_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="296"
+data-flex-basis="712px"
+>&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>HTTP&lt;/strong> Latency Improvement: Public ~55 ms | &lt;strong>Private&lt;/strong> ~ 45ms&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/p.png"
+width="1643"
+height="560"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/p_hu0e319c65338e1299109bb5f64accaae3_113857_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/p_hu0e319c65338e1299109bb5f64accaae3_113857_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="293"
+data-flex-basis="704px"
+>&lt;/p>
+&lt;h3 id="team-collaboration-across-different-missions">Team Collaboration Across Different Missions&lt;/h3>
+&lt;p>Not long ago, I traveled to Las Vegas for &lt;strong>AWS Re:Invent&lt;/strong>. There I ran into some of my fellow work colleagues and talked shop we hung out for multiple days and got to know each other - it was the first time I ever interacted with them&amp;hellip; &lt;strong>DESPITE WORKING ON THE SAME FLOOR&lt;/strong>.&lt;/p>
+&lt;p>That being said, projects like this are a great way to break down those corporate silos and build up some &lt;strong>cross team collaboration&lt;/strong>.&lt;/p>
+&lt;h2 id="end">End&lt;/h2>
+&lt;p>A final cohesive &lt;strong>architecture&lt;/strong> example that we can use looks like this:&lt;/p>
+&lt;p>&lt;img src="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/r.png"
+width="6563"
+height="4988"
+srcset="https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/r_hu7085ff46d7f6515504a927472a639a57_223557_480x0_resize_box_3.png 480w, https://kaonbytes.com/p/a-case-study-in-hybrid-cloud-network-design/images/r_hu7085ff46d7f6515504a927472a639a57_223557_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="131"
+data-flex-basis="315px"
+>&lt;/p></description></item><item><title>Building a DataCenter As Code with Arista CloudVision</title><link>https://kaonbytes.com/p/building-a-datacenter-as-code-with-arista-cloudvision/</link><pubDate>Thu, 31 Aug 2023 00:00:00 +0000</pubDate><guid>https://kaonbytes.com/p/building-a-datacenter-as-code-with-arista-cloudvision/</guid><description>&lt;img src="https://kaonbytes.com/p/building-a-datacenter-as-code-with-arista-cloudvision/images/dcac-front.png" alt="Featured image of post Building a DataCenter As Code with Arista CloudVision" />&lt;h2 id="about">About&lt;/h2>
 &lt;p>I recently worked on a project using &lt;a class="link" href="https://en.wikipedia.org/wiki/Arista_Networks" target="_blank" rel="noopener"
 >Arista&lt;/a> Network switches and &lt;a class="link" href="https://www.arista.com/en/products/eos/eos-cloudvision" target="_blank" rel="noopener"
 >Arista CloudVision&lt;/a> in the datacenter. As a greenfield deployment, I thought it would be a good opportunity to combine multiple netdevops techniques and tools to create a complete data-center-as-code pipeline to manage this deployment.&lt;/p>
@@ -3817,87 +4264,87 @@ This is done before the BGPAlerter service is started on the container.&lt;/p>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="ecs-terraform-file">ECS Terraform File&lt;/h4>
 &lt;p>&lt;strong>Builds&lt;/strong> the Elastic Container Service in AWS&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-zed" data-lang="zed">&lt;span class="line">&lt;span class="cl">&lt;span class="err">###&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ECS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">File&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">creates&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Fargate&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">service&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">for&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">docker&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">container&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">###&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Sets&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">CPU&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">and&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">RAM&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">###&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Creates&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bgpalerter&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">task&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kt">definition&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">and&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">runs&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">it&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">resource&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">aws_ecs_cluster&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">bgpalerter&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">fargate&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">local&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">svc_name&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">capacity_providers&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">FARGATE_SPOT&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">default_capacity_provider_strategy&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">capacity_provider&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">FARGATE_SPOT&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">tags&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">var&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">common_tags&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">// ECS service
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">resource&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">aws_ecs_service&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">bgpalerter&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">svc&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">local&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">svc_name&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">cluster&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aws_ecs_cluster&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">bgpalerter&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">fargate&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">task_definition&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aws_ecs_task_definition&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">task_definition&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">arn&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">desired_count&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">1&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">launch_type&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">FARGATE&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">network_configuration&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">subnets&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">security_groups&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">load_balancer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">target_group_arn&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">container_name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">container_port&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">tags&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">###&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Create&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">BGPAlerter&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Task&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">resource&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">aws_ecs_task_definition&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">task_definition&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">family&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">local&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">svc_name&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">requires_compatibilities&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">FARGATE&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">network_mode&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">awsvpc&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">execution_role_arn&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">task_role_arn&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="err">###&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">CPU&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">and&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Memory&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">cpu&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">512&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">memory&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">1024&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">tags&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">container_definitions&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">jsonencode&lt;/span>&lt;span class="p">([&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">local&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">svc_name&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">image&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;$&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="n">var&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">image_name&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="n">var&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">image_tag_digest&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">essential&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">true&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="err">###&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">Call&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">shell&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">script&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">when&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">image&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">starts&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">This&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">replaces&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">slack&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">webhook&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">and&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">starts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">the&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">service&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">entryPoint&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nn">bin/&lt;/span>&lt;span class="n">sh&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nn">opt/bgpalerter/volume/&lt;/span>&lt;span class="n">slack&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">token&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">replace&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">sh&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">secrets&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">SLACK_API_TOKEN&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">valueFrom&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">portMappings&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">containerPort&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">8011&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">hostPort&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">8011&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">logConfiguration&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">logDriver&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">awslogs&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">options&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">awslogs&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">group&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">local&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">svc_name&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">awslogs&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">region&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">us&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">east&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="err">1&amp;#34;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">awslogs&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">prefix&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="n">bgpalerter&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="the-results">The Results&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### ECS File creates the Fargate service for the docker container&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Sets CPU and RAM&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Creates the bgpalerter task definition and runs it&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_ecs_cluster&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;bgpalerter-fargate&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">name&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">svc_name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">capacity_providers&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;FARGATE_SPOT&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">default_capacity_provider_strategy&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">capacity_provider&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;FARGATE_SPOT&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tags&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="k">var&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">common_tags&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">//&lt;/span> &lt;span class="n">ECS&lt;/span> &lt;span class="n">service&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_ecs_service&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;bgpalerter-svc&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">name&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">svc_name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">cluster&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">aws_ecs_cluster&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">bgpalerter&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">fargate&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">id&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">task_definition&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">aws_ecs_task_definition&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">task_definition&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">arn&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">desired_count&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">launch_type&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;FARGATE&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">network_configuration&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">subnets&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">xxx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">security_groups&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">xxx&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">load_balancer&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">target_group_arn&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">xxx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">container_name&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">xxx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">container_port&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">xxx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tags&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">xxx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">### Create BGPAlerter Task&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_ecs_task_definition&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;task_definition&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">family&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">svc_name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">requires_compatibilities&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;FARGATE&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">network_mode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;awsvpc&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">execution_role_arn&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">xxx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">task_role_arn&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">xxx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">### CPU and Memory&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">cpu&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">512&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">memory&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1024&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tags&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">xxx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">container_definitions&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">jsonencode&lt;/span>&lt;span class="p">([&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">name&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">svc_name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">image&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;${var.image_name}${var.image_tag_digest}&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">essential&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="bp">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">### Call the shell script when the image starts. This replaces the slack webhook and starts the service&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">entryPoint&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;/bin/sh&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;/opt/bgpalerter/volume/slack-token-replace.sh&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">secrets&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">name&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;SLACK_API_TOKEN&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">valueFrom&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">xxx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">portMappings&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">containerPort&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">8011&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">hostPort&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">8011&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">logConfiguration&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">logDriver&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;awslogs&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">options&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">awslogs&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">group&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">svc_name&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">awslogs&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">region&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;us-east-1&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">awslogs&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">prefix&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;bgpalerter&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="the-results">The Results&lt;/h3>
 &lt;h4 id="drone-build-progress">Drone Build Progress&lt;/h4>
 &lt;p>&lt;img src="https://kaonbytes.com/p/bgpalerter-as-code-using-a-terraform-pipeline/bgpalerter-drone-build-in-progress.png"
 width="1716"
