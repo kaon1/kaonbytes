@@ -16,7 +16,7 @@ image = "images/front2.png"
 
 ## About
 
-A case study in network design for the **hybrid network engineer**. A walkthrough of the year-long journey this network engineer took on to interconnect public cloud workloads from all three major CSPs ([Azure](https://azure.microsoft.com/en-us), [AWS](https://aws.amazon.com/), [GCP](https://cloud.google.com/?hl=en)) + on-prem to provide a robust and highly available solution for the application teams. I will discuss the architectural strategy, lessons learned, pitfalls and wins of the overall solution. 
+A case study in network design for the **hybrid network engineer**. A walkthrough of the year-long journey to interconnect **public cloud workloads** from all three major CSPs ([Azure](https://azure.microsoft.com/en-us), [AWS](https://aws.amazon.com/), [GCP](https://cloud.google.com/?hl=en)) and on-premises **Enterprise Networks** to provide a robust and highly available solution for the application teams. I will discuss the architectural strategy, lessons learned, pitfalls and wins of the **overall solution**. 
 
 ## Problem Statement
 
@@ -162,16 +162,22 @@ Some possible solutions to fix this:
 
 With NCC Peering off the table, we went back to VPC Peering. But this time the decision was to select a few **high value** GCP Projects that made up the majority of the traffic load. Re-IP those secondary kubernetes **ranges** (if needed) and move on.
 
+Another **issue** that arose: Google Cloud Routers connected to the interconnects would not automatically export the [learned VPC Peering routes](https://cloud.google.com/vpc/docs/vpc-peering#custom-route-exchange):
+
+![](images/q.png)
+
+To solve this **problem**, we have to install custom advertisements on the google cloud routers (i.e. maintain an **IP Prefix List**). This adds complexity to the project, but could be solved **programmatically** during our pipeline build which will be shared later on in this post. 
+
 #### AWS - Account-to-Account Routing Options
 
-The original design assumed to use the existing **Transit Gateway** connections to route the newly introduced traffic to each account. However, after performing a cost reduction **analysis** we realized that the Transit Gateway **transfer costs** were still very high, making the effort of the entire project less appealing. Another option would be to create new connections with **VGW attachments**. 
+The original design assumed to use the existing **Transit Gateway** connections to route the newly introduced traffic to each account. However, after performing a cost reduction [analysis](https://calculator.aws/#/) we realized that the Transit Gateway **transfer costs** were still high, making the effort of the entire project less appealing. Another option would be to create new connections with Virtual Private Gateways (**VGW attachments**). 
 
 As an example exercise, if we assume **1000TB** of monthly data transfers:
 
-- 1000 TB monthly transfer cost via Transit Gateway = **~$40k per month**
-- 1000 TB monthly transfer cost via Dedicated Virtual Gateways = **~$20k per month**
+- Using the **TGW** architecture would save up to **30%** of data transfer costs.
+- Using the **VGW** architecture would save up to **60%** of data transfer costs.
 
-The numbers are very different based on how you route **within AWS**. So the tradeoff we made was to select a few **heavy hitter** accounts to peer directly with the hub network account. 
+So the tradeoff we made was to select a few **heavy hitter** accounts to peer directly with the hub network account using a **VGW Architecture**. 
 
 To do this, I needed to create dedicated VGWs in each **heavy hitter** account and attach it to a new DXGW instead of using the existing Transit Gateway **architecture**. For the **rest of the accounts** connectivity would still be established via the TGW. 
 
@@ -194,7 +200,7 @@ Prior to this project, I had almost no **experience** building anything in Azure
 
 In general understanding the **different concepts** of VPCs vs VNETs - Projects vs Accounts vs Subscriptions - Global route tables vs regional route tables etc... could be a **whole book** (that I would not be qualified to write). One example that comes to mind which took me by surprise:
 
-- In GCP - US **East1** is in North Carolina but in AWS US East1 is in **Virginia**. Something to keep in mind when thinking about traffic latency and regional disaster recovery scenarios.
+- In GCP - US **East1** is in South Carolina but in AWS US East1 is in **Virginia**. Something to keep in mind when thinking about traffic latency and regional disaster recovery scenarios.
 
 ### High Availability
 
@@ -232,35 +238,107 @@ What are some BGP decisions we have to make to design a **reliable and fast netw
         ```
     - When I performed failover testing of these circuits, it took almost **5 seconds** for the GCP traffic to recover as opposed to the AWS failure took under **1 second** to recover. 
 
-2. Understand Route Priorities in Different Cloud **Environments**
+2. Understand Route Manipulations and Priorities in Different Cloud **Environments**
    - For example, in AWS its best practice to **influence** traffic using [longest prefix match](https://aws.amazon.com/blogs/networking-and-content-delivery/influencing-traffic-over-hybrid-networks-using-longest-prefix-match/)
    - We can also influence routing **policies** with [BGP Communities](https://docs.aws.amazon.com/directconnect/latest/UserGuide/routing-and-bgp.html)
    - Additionally, using AS PATH Prepending or MED values is another **option**
-   - Also keep in mind, Route Priority of [Propogated Routes](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html#route-table-priority-propagated-routes)
+   - Also keep in mind, Route Priority of [Propagated Routes](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html#route-table-priority-propagated-routes)
 
-3. Should we use Load Sharing **ECMP** across multiple links?
+3. Should we use Equal Cost Multipathing (**i.e. ECMP Load Sharing**) across multiple links?
 
-  - Possible cons/negatives of ECMP:
+  - Possible **negatives** of ECMP:
     - **Non-deterministic** route paths - hard to "know" which way your traffic is flowing at all times.
-    - **Gray outages** where one path is not working optimally and causes interment issues making it hard to troubleshoot.
-    - If a **stateful firewall** is in line to these connections return traffic will get dropped.
-    - Load balancing accross different geographical locations will cause variations oif latency and network performance
-  - Benefits:
-    - Use up more of your alloted bandwidth per link
-    - More resiliant to failovers - i.e if a link fails all of your traffic does not go down waiting for BFD to kick in
-    - 
+    - **Gray outages** where one path is not working optimally and causes intermittent issues making it hard to troubleshoot.
+    - If a **stateful firewall** is in line inspecting traffic and return routes take a different path, it may get dropped
+    - Load balancing across different **geographical locations** may cause latency variations
+  - **Benefits**:
+    - **Maximize** your provisioned circuits. i.e more available **bandwidth**
+    - More resilient to **failover** - if a link fails all of your traffic does not go down waiting for BFD to kick in.
 
+  - I decided to use ECMP - but I understand why other's may choose not to.
 
 ### Visibility and Operations
+
+In my view, a project is not **done** just because traffic is flowing from point A to point B. I believe it is just as important to devote equal planning, time and energy towards **supporting systems**
+
+#### Observability
+
+How do we **monitor** these new partner virtual routers? The typical network construct of pointing your **SNMP poller** to a router and graphing bandwidth does not apply here. 
+
+- Answer: Use **APIs** to gather info and relay it back to a centralized observability platform. In my case, our tech org has standardized on a single **SaaS observability platform** so I wrote some glue scripts to do this. I will share below.
+
+[Python Script to Send Metrics](https://github.com/kaon1/python-misc/blob/master/observability-metrics/megaport-status-checks-for-resources.py)
+
+The **script** does the following:
+1. Gathers a **status check** of the Virtual Routers and Cross Connects
+2. Sends the status to the observability platform **periodically**
+3. In the platform we create **dashboards and monitors** to alert on interesting values or missing data (i.e a resource is no longer reporting)
+
+- Another script [here polls bandwidth usage every 5 minutes](https://github.com/kaon1/python-misc/blob/master/observability-metrics/megaport-mcr-bw-to-dd.py) and sends the metric up to the observability platform for **graphing**.
+
+All of this info **could** be gathered directly from the Cloud Provider's portal - an operator would just need to login and click around to find it. But, in keeping with the principles listed above of **limiting institutional knowledge** its important to make this data available and visible to all teams within the organization.
+
+#### Testing
+
+It is important to establish baseline tests of "what the network **should** look like at any given time" - so that if something goes wrong we have **historical data** to refer back to.
+
+We should:
+- Use **synthetic testing** to measure ICMP latency, HTTP Response Time, Packet Loss and Hop Count between two endpoints on each end of the **dedicated private links**
+- Generate traffic using **iperf** across the links and **measure performance**
+- There's a handy [iperf3 library](https://iperf3-python.readthedocs.io/en/latest/) which can be used to script these tests and send the results up to your **observability platform**. 
+
+Here's an [example script](https://github.com/kaon1/python-misc/blob/master/observability-metrics/iperf-megaport-dd.py) which takes in some **user input** (like iperf destination, number of streams to send, duration of test and bandwidth) and sends the metrics up for graphing.
+
+An example way to run this script would be with a 5 minute **cronjob** from a server in each Cloud Environment.
+```
+*/5 * * * * root python3 iperf-dd.py --direction upload --dest_name gcpuseast1 --dest_ip 10.x.x.x --dest_port 5201 --numofstreams 1 --duration 30 --bandwidth 1000000000
+*/5 * * * * root python3 iperf-dd.py --direction upload --dest_name gcpuscentral1 --dest_ip 10.x.x.x --dest_port 5203 --numofstreams 1 --duration 30 --bandwidth 1000000000
+```
+#### Pipelines for Deploying Changes
+
+As I mentioned in the **design** portion of this post, it is important to use devops principles wherever possible for provisioning and changing these resources. I have multiple blog posts about creating **terraform pipelines**, so I won't go into detail here. But the general idea is this:
+
+1. Create a **shared repository** for these new cloud resources - give access to other teams to suggest changes (via PRs)
+2. Build **pipelines** that perform dry runs or plans of changes
+3. Execute new changes on **merges to main**
+
+Here is an [example terraform file](https://github.com/kaon1/python-misc/blob/master/scripts/aws-vgw-to-dxgw-example.tf) that can be installed on a per account basis to create the VGWs and also attach them to the DXGW.
+
+**Why** is this important?
+
+- Provides **visibility** to app teams of the network connectivity (its no longer just a black box)
+- Tracks changes, self **documents** the network
+- Makes it easier to maintain complex, repeatable objects such as **IP Prefix Lists**
+
+As mentioned above, we have to use IP Prefix lists on the GCRs, but Prefix Lists also give you more **control** of the routing and allows the ability to enforce the concept of **least access** (explicit permit). But these prefix lists can get **complex** with multiple virtual routers and cross connects. One way to keep these in **sync** is with a a [pipeline script](https://github.com/kaon1/python-misc/blob/master/scripts/prefix-sync-megaport.py).
+
+The script eases the onboarding process of a new **workload/account**. If a new workload is onboarding to this **architecture**, we update the shared repository and add the **new prefixes**. The **pipeline** runs and updates the necessary prefix lists to allow communication.
 
 ## Overall Wins
 
 ### Lowering Monthly Cloud Traffic Costs
+- It takes a **PHD** to understand the complexity of cloud costs - and I do not have one. But I have been told its **working**...so that's good enough for me :D 
 
-### Improved Security Posture and Private Connectivty
+### Improved Security Posture and Private Connectivity
+- Able to reduce the amount of **public endpoints** which do not need to be exposed
+- More **control** of cloud account routing
 
-### Better Network Latency
+### Better Network Performance
+- **ICMP** Latency Improvement: Public ~21 ms | **Private** ~13 ms 
 
-### Team Collaboration accross different business Units
+![](images/o.png)
+
+- **HTTP** Latency Improvement: Public ~55 ms | **Private** ~ 45ms
+
+![](images/p.png)
+
+### Team Collaboration Across Different Missions
+Not long ago, I traveled to Las Vegas for **AWS Re:Invent**. There I ran into some of my fellow work colleagues and talked shop we hung out for multiple days and got to know each other - it was the first time I ever interacted with them... **DESPITE WORKING ON THE SAME FLOOR**.
+
+That being said, projects like this are a great way to break down those corporate silos and build up some **cross team collaboration**. 
 
 ## End
+
+A final cohesive **architecture** example that we can use looks like this:
+
+![](images/r.png)
